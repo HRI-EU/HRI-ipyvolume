@@ -18,6 +18,7 @@ __all__ = [
     'plot_surface',
     'plot_wireframe',
     'plot_mesh',
+    'plot_voxel',
     'plot',
     'scatter',
     'quiver',
@@ -614,6 +615,55 @@ def plot_mesh(
     fig.meshes = fig.meshes + [mesh]
     return mesh
 
+def plot_voxel(
+    x,
+    y,
+    z,
+    color=default_color,
+    size=default_size,
+    size_selected=default_size_selected,
+    color_selected=default_color_selected,
+    marker="diamond",
+    selection=None,
+    grow_limits=True,
+    lighting_model='DEFAULT',
+    opacity=1,
+    emissive_color='black',
+    emissive_intensity=emissive_intensity_default,
+    roughness=0,
+    metalness=0,
+    **kwargs
+):
+
+    print("PLOT VOXEL")
+    fig = gcf()
+    if grow_limits:
+        _grow_limits(x, y, z)
+
+    mesh = ipv.Mesh(
+        x=x,
+        y=y,
+        z=z,
+        triangles=None,
+        color=color,
+        lines=None,
+        u=None,
+        v=None,
+        texture=None,
+        lighting_model=lighting_model,
+        opacity=opacity,
+        #specular_color=specular_color,
+        #shininess=shininess,
+        emissive_intensity=emissive_intensity,
+        roughness=roughness,
+        metalness=metalness,
+        procedural_geo=True
+        #cast_shadow=cast_shadow,
+        #receive_shadow=receive_shadow
+    )
+
+    fig.meshes = fig.meshes + [mesh]
+    return mesh
 
 @_docsubst
 def plot(

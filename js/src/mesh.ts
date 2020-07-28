@@ -370,6 +370,7 @@ class MeshView extends widgets.WidgetView {
             material.depthTest = true;
             // use lighting
             material.lights = true;
+            material.flatShading = true;//TODO: also update in feat_lighting
         });
 
         this.diffuse_color = this.model.get("diffuse_color");
@@ -502,14 +503,65 @@ class MeshView extends widgets.WidgetView {
         current.ensure_array(["color"]);
         previous.ensure_array(["color"]);
         let triangles = this.model.get("triangles");
+        let procedural_geo = this.model.get("procedural_geo");
+        let vertices;
+        let indices;
+
+        if(!triangles && procedural_geo) {
+            let vert_x = this.model.get("x")[0];
+            let vert_y = this.model.get("y")[0];
+            let vert_z = this.model.get("z")[0];
+            let voxel_geometry = new THREE.BoxGeometry(1, 1, 1);
+            
+            if(vert_x.length != vert_y.length && vert_x.length != vert_z.length) {
+                console.error("Mismatched lengths for model get x, y, z");
+            }
+            else {
+                //TODO: Fix GL ERROR :GL_INVALID_OPERATION : glDrawElements: attempt to access out of range vertices in attribute 2
+                vertices = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 3);
+                indices = new Uint32Array(voxel_geometry.faces.length * vert_x.length * 3);
+                let faceOffset = 0;
+                let vIndex = 0;
+                let fIndex = 0;
+
+                for(let v=0; v<vert_x.length; v++) {
+                    for (let x=0; x<voxel_geometry.vertices.length; x++) {
+                        vertices[vIndex++] = voxel_geometry.vertices[x].x + vert_x[v];
+                        vertices[vIndex++] = voxel_geometry.vertices[x].y + vert_y[v];
+                        vertices[vIndex++] = voxel_geometry.vertices[x].z + vert_z[v];
+                    }
+
+                    for (let b=0; b<voxel_geometry.faces.length; b++) {
+                        indices[fIndex++] = voxel_geometry.faces[b].a + faceOffset;
+                        indices[fIndex++] = voxel_geometry.faces[b].b + faceOffset;
+                        indices[fIndex++] = voxel_geometry.faces[b].c + faceOffset;
+                    }
+                    faceOffset += voxel_geometry.vertices.length;
+                }
+                triangles = new Float32Array(indices.length);
+                triangles = indices.slice();
+            }
+        }
+
         if (triangles) {
-            triangles = triangles[0];
             const geometry = new THREE.BufferGeometry();
-            geometry.addAttribute("position", new THREE.BufferAttribute(current.array_vec3.vertices, 3));
-            geometry.addAttribute("position_previous", new THREE.BufferAttribute(previous.array_vec3.vertices, 3));
-            geometry.addAttribute("color_current", new THREE.BufferAttribute(current.array_vec4.color, 4));
-            geometry.addAttribute("color_previous", new THREE.BufferAttribute(previous.array_vec4.color, 4));
-            geometry.setIndex(new THREE.BufferAttribute(triangles, 1));
+            if(procedural_geo) {
+                geometry.addAttribute("position", new THREE.BufferAttribute(vertices, 3));
+                geometry.addAttribute("position_previous", new THREE.BufferAttribute(vertices, 3));
+                geometry.addAttribute("color_current", new THREE.BufferAttribute(current.array_vec4.color, 4));
+                geometry.addAttribute("color_previous", new THREE.BufferAttribute(previous.array_vec4.color, 4));
+                geometry.setIndex(new THREE.BufferAttribute(triangles, 1));
+                geometry.setDrawRange(0, triangles.length-1);
+            }
+            else {
+                triangles = triangles[0];
+                geometry.addAttribute("position", new THREE.BufferAttribute(current.array_vec3.vertices, 3));
+                geometry.addAttribute("position_previous", new THREE.BufferAttribute(previous.array_vec3.vertices, 3));
+                geometry.addAttribute("color_current", new THREE.BufferAttribute(current.array_vec4.color, 4));
+                geometry.addAttribute("color_previous", new THREE.BufferAttribute(previous.array_vec4.color, 4));
+                geometry.setIndex(new THREE.BufferAttribute(triangles, 1));
+            }
+
             const texture = this.model.get("texture");
             const u = current.array.u;
             const v = current.array.v;
@@ -632,6 +684,7 @@ class MeshModel extends widgets.WidgetModel {
             metalness : 0,
             cast_shadow : false,
             receive_shadow : false,
+            procedural_geo : false
         };
     }
 }
