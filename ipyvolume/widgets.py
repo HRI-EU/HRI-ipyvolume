@@ -75,6 +75,7 @@ class Mesh(widgets.Widget):
     cast_shadow = traitlets.CBool(default_value=False).tag(sync=True)
     receive_shadow = traitlets.CBool(default_value=False).tag(sync=True)
     procedural_geo = traitlets.CBool(default_value=False).tag(sync=True)
+    flat_shading = traitlets.CBool(default_value=True).tag(sync=True)
 
     material = traitlets.Instance(
         pythreejs.ShaderMaterial, help='A :any:`pythreejs.ShaderMaterial` that is used for the mesh'
@@ -255,7 +256,6 @@ class Light(widgets.Widget):
 
     intensity = traitlets.CFloat(1).tag(sync=True)
     light_type = traitlets.Enum(values=['AMBIENT', 'DIRECTIONAL', 'SPOT', 'POINT', 'HEMISPHERE'], default_value='AMBIENT').tag(sync=True)
-    shadow_map_type = traitlets.Enum(values=['BASIC', 'PCF', 'PCF_SOFT'], default_value='PCF_SOFT').tag(sync=True)
     
     cast_shadow = traitlets.Bool(False).tag(sync=True)
 
