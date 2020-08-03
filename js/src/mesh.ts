@@ -5,6 +5,7 @@ import { FigureView } from "./figure";
 import * as serialize from "./serialize.js";
 import { semver_range } from "./utils";
 import * as values from "./values.js";
+import { Colors } from "three";
 
 export
 class MeshView extends widgets.WidgetView {
@@ -506,6 +507,7 @@ class MeshView extends widgets.WidgetView {
         let procedural_geo = this.model.get("procedural_geo");
         let vertices;
         let indices;
+        let colors;
 
         if(!triangles && procedural_geo) {
             let vert_x = this.model.get("x")[0];
@@ -517,18 +519,27 @@ class MeshView extends widgets.WidgetView {
                 console.error("Mismatched lengths for model get x, y, z");
             }
             else {
-                //TODO: Fix GL ERROR :GL_INVALID_OPERATION : glDrawElements: attempt to access out of range vertices in attribute 2
                 vertices = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 3);
+                colors = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 4);
                 indices = new Uint32Array(voxel_geometry.faces.length * vert_x.length * 3);
+                let currentColor = new THREE.Color(this.model.get("color"));
+                //console.log(currentColor);
+                //console.log(current.array_vec4.color);
                 let faceOffset = 0;
                 let vIndex = 0;
                 let fIndex = 0;
-
+                let cIndex = 0;
                 for(let v=0; v<vert_x.length; v++) {
                     for (let x=0; x<voxel_geometry.vertices.length; x++) {
                         vertices[vIndex++] = voxel_geometry.vertices[x].x + vert_x[v];
                         vertices[vIndex++] = voxel_geometry.vertices[x].y + vert_y[v];
                         vertices[vIndex++] = voxel_geometry.vertices[x].z + vert_z[v];
+                    }
+                    for (let col=0; col<voxel_geometry.vertices.length; col++) {
+                        colors[cIndex++] = currentColor.r;
+                        colors[cIndex++] = currentColor.g;
+                        colors[cIndex++] = currentColor.b;
+                        colors[cIndex++] = 1.0;
                     }
 
                     for (let b=0; b<voxel_geometry.faces.length; b++) {
@@ -548,10 +559,10 @@ class MeshView extends widgets.WidgetView {
             if(procedural_geo) {
                 geometry.addAttribute("position", new THREE.BufferAttribute(vertices, 3));
                 geometry.addAttribute("position_previous", new THREE.BufferAttribute(vertices, 3));
-                geometry.addAttribute("color_current", new THREE.BufferAttribute(current.array_vec4.color, 4));
-                geometry.addAttribute("color_previous", new THREE.BufferAttribute(previous.array_vec4.color, 4));
-                geometry.setIndex(new THREE.BufferAttribute(triangles, 1));
-                geometry.setDrawRange(0, triangles.length-1);
+                geometry.addAttribute("color_current", new THREE.BufferAttribute(colors, 4));
+                geometry.addAttribute("color_previous", new THREE.BufferAttribute(colors, 4));
+                geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+                geometry.setDrawRange(0, indices.length-1);
             }
             else {
                 triangles = triangles[0];
