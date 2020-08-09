@@ -40,6 +40,7 @@ class ScatterView extends widgets.WidgetView {
     metalness : any;
     cast_shadow : any;
     receive_shadow : any;
+    procedural_geo : any;
 
     render() {
 
@@ -340,8 +341,15 @@ class ScatterView extends widgets.WidgetView {
         this.lighting_model = this.model.get("lighting_model");
 
         this.materials.forEach((material) => {
-            material.vertexShader = require("raw-loader!../glsl/scatter-vertex.glsl");
-            material.fragmentShader = require("raw-loader!../glsl/scatter-fragment.glsl");
+            if(this.procedural_geo) {
+                material.vertexShader = require("raw-loader!../glsl/mesh-vertex.glsl");
+                material.fragmentShader = require("raw-loader!../glsl/mesh-fragment.glsl");
+            }
+            else {
+                material.vertexShader = require("raw-loader!../glsl/scatter-vertex.glsl");
+                material.fragmentShader = require("raw-loader!../glsl/scatter-fragment.glsl");
+            }
+
             material.defines.DEFAULT_SHADING = false;
             material.defines.PHYSICAL_SHADING = false;
 
@@ -395,6 +403,7 @@ class ScatterView extends widgets.WidgetView {
             }
         }
         this.material.lights = true;
+        this.material.flatShading = true;
         this.material.needsUpdate = true;
         this.material_rgb.needsUpdate = true;
         this.line_material.needsUpdate = true;
@@ -410,12 +419,61 @@ class ScatterView extends widgets.WidgetView {
         }
         const sprite = geo.endsWith("2d");
         const buffer_geo = new THREE.BufferGeometry().fromGeometry(this.geos[geo]);
-        //buffer_geo.computeVertexNormals();
-        const instanced_geo = new THREE.InstancedBufferGeometry();
 
-        const vertices = (buffer_geo.attributes.position as any).clone();
-        instanced_geo.addAttribute("position", vertices);
-        
+        this.procedural_geo = this.model.get("procedural_geo");
+
+        const instanced_geo = this.procedural_geo ? new THREE.BufferGeometry() : new THREE.InstancedBufferGeometry();
+
+        if(this.procedural_geo) {
+            let vert_x = this.model.get("x")[0];
+            let vert_y = this.model.get("y")[0];
+            let vert_z = this.model.get("z")[0];
+            let voxel_geometry = this.geos[geo];
+            
+            if(vert_x.length != vert_y.length && vert_x.length != vert_z.length) {
+                console.error("Mismatched lengths for model get x, y, z");
+            }
+            else {
+                let vertices = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 3);
+                let colors = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 4);
+                let indices = new Uint32Array(voxel_geometry.faces.length * vert_x.length * 3);
+                let currentColor = new THREE.Color(this.model.get("color"));
+                let faceOffset = 0;
+                let vIndex = 0;
+                let fIndex = 0;
+                let cIndex = 0;
+                for(let v=0; v<vert_x.length; v++) {
+                    for (let x=0; x<voxel_geometry.vertices.length; x++) {
+                        vertices[vIndex++] = voxel_geometry.vertices[x].x + vert_x[v];
+                        vertices[vIndex++] = voxel_geometry.vertices[x].y + vert_y[v];
+                        vertices[vIndex++] = voxel_geometry.vertices[x].z + vert_z[v];
+                    }
+                    for (let col=0; col<voxel_geometry.vertices.length; col++) {
+                        colors[cIndex++] = currentColor.r;
+                        colors[cIndex++] = currentColor.g;
+                        colors[cIndex++] = currentColor.b;
+                        colors[cIndex++] = 1.0;
+                    }
+
+                    for (let b=0; b<voxel_geometry.faces.length; b++) {
+                        indices[fIndex++] = voxel_geometry.faces[b].a + faceOffset;
+                        indices[fIndex++] = voxel_geometry.faces[b].b + faceOffset;
+                        indices[fIndex++] = voxel_geometry.faces[b].c + faceOffset;
+                    }
+                    faceOffset += voxel_geometry.vertices.length;
+                }
+                instanced_geo.addAttribute("position", new THREE.BufferAttribute(vertices, 3));
+                instanced_geo.addAttribute("color_current", new THREE.BufferAttribute(colors, 4));
+                instanced_geo.setIndex(new THREE.BufferAttribute(indices, 1));
+                instanced_geo.setDrawRange(0, indices.length-1);
+            }
+        }
+        else
+        {
+            const vertices = (buffer_geo.attributes.position as any).clone();
+            instanced_geo.addAttribute("position", vertices);
+        }
+
         const sequence_index = this.model.get("sequence_index");
         let sequence_index_previous = this.previous_values.sequence_index;
         if (typeof sequence_index_previous === "undefined") {
@@ -430,7 +488,9 @@ class ScatterView extends widgets.WidgetView {
         //Fix for Uncaught TypeError: Cannot read property 'BYTES_PER_ELEMENT' of undefined
         current.ensure_array(["color"]);
         // Workaround for shader issue - Threejs already uses the name color 
-        instanced_geo.addAttribute("color_current", new THREE.BufferAttribute(current.array_vec4.color, 4));
+        if(!this.procedural_geo) {
+            instanced_geo.addAttribute("color_current", new THREE.BufferAttribute(current.array_vec4.color, 4));
+        }
 
         const length = Math.max(current.length, previous.length);
         if (length === 0) {
@@ -579,6 +639,7 @@ class ScatterModel extends widgets.WidgetModel {
             metalness : 0,
             cast_shadow : false,
             receive_shadow : false,
+            procedural_geo : false
         };
     }
 }
