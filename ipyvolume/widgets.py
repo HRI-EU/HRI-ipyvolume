@@ -74,7 +74,6 @@ class Mesh(widgets.Widget):
     cast_shadow = traitlets.CBool(default_value=True).tag(sync=True)
     receive_shadow = traitlets.CBool(default_value=True).tag(sync=True)
     flat_shading = traitlets.CBool(default_value=True).tag(sync=True)
-    procedural_geo = traitlets.CBool(default_value=False).tag(sync=True)
     material = traitlets.Instance(
         pythreejs.ShaderMaterial, help='A :any:`pythreejs.ShaderMaterial` that is used for the mesh'
     ).tag(sync=True, **widgets.widget_serialization)
@@ -121,6 +120,7 @@ class Scatter(widgets.Widget):
         ],
         default_value=7,
     ).tag(sync=True)
+    size_point = traitlets.CFloat(1).tag(sync=True)
     color = Array(default_value="red", allow_none=True).tag(sync=True, **color_serialization)
     color_selected = traitlets.Union(
         [Array(default_value=None, allow_none=True).tag(sync=True, **color_serialization), Unicode().tag(sync=True)],

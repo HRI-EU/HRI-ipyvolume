@@ -19,7 +19,7 @@ __all__ = [
     'plot_surface',
     'plot_wireframe',
     'plot_mesh',
-    'plot_voxel',
+    'plot_pointcloud',
     'plot',
     'scatter',
     'quiver',
@@ -619,55 +619,72 @@ def plot_mesh(
     fig.meshes = fig.meshes + [mesh]
     return mesh
 
-def plot_voxel(
+@_docsubst
+def plot_pointcloud(
     x,
     y,
     z,
     color=default_color,
     size=default_size,
     size_selected=default_size_selected,
+    size_point=1,
     color_selected=default_color_selected,
-    marker="diamond",
+    marker="box",
     selection=None,
     grow_limits=True,
+    procedural_geo=False,
     lighting_model='DEFAULT',
     opacity=1,
-    emissive_color='black',
     emissive_intensity=emissive_intensity_default,
     roughness=0,
     metalness=0,
     **kwargs
 ):
-
-    print("PLOT VOXEL")
+    """Plot many markers/symbols in 3d.
+       Due to certain shader limitations, should not use with Spot Lights and Point Lights.
+       Does not support shadow mapping.
+    :param x: {x}
+    :param y: {y}
+    :param z: {z}
+    :param color: {color} Color of the material, essentially a solid color unaffected by other lighting. Default is 'red'
+    :param size: {size}
+    :param size_selected: like size, but for selected glyphs
+    :param color_selected:  like color, but for selected glyphs
+    :param marker: {marker}
+    :param selection: numpy array of shape (N,) or (S, N) with indices of x,y,z arrays of the selected markers, which
+                      can have a different size and color
+    :param lighting_model: The lighting model used to calculate the final color of the mesh. Can be 'DEFAULT', 'PHYSICAL'. implicit 'DEFAULT'. Will be automatically updated to 'PHYSICAL' if a light is added to figure
+    :param opacity: (Physical Only) 0 - Mesh is fully transparent; 1 - Mesh is fully opaque
+    :param emissive_intensity: (Physical Only) Factor multiplied with color. Takes values between 0 and 1. Default is 0.2
+    :param roughness: (Physical Only) How rough the material appears. 0.0 means a smooth mirror reflection, 1.0 means fully diffuse. Default is 1
+    :param metalness: (Physical Only) How much the material is like a metal. Non-metallic materials such as wood or stone use 0.0, metallic use 1.0, with nothing (usually) in between
+    :param kwargs:
+    :return: :any:`Scatter`
+    """
     fig = gcf()
     if grow_limits:
         _grow_limits(x, y, z)
-
-    mesh = ipv.Mesh(
+    s = ipv.Scatter(
         x=x,
         y=y,
         z=z,
-        triangles=None,
         color=color,
-        lines=None,
-        u=None,
-        v=None,
-        texture=None,
+        size=size,
+        color_selected=color_selected,
+        size_selected=size_selected,
+        size_point=size_point,
+        geo=marker,
+        selection=selection,
+        procedural_geo=True,
         lighting_model=lighting_model,
         opacity=opacity,
-        #specular_color=specular_color,
-        #shininess=shininess,
         emissive_intensity=emissive_intensity,
         roughness=roughness,
         metalness=metalness,
-        procedural_geo=True
-        #cast_shadow=cast_shadow,
-        #receive_shadow=receive_shadow
+        **kwargs
     )
-
-    fig.meshes = fig.meshes + [mesh]
-    return mesh
+    fig.scatters = fig.scatters + [s]
+    return s
 
 @_docsubst
 def plot(
@@ -714,7 +731,6 @@ def scatter(
     marker="diamond",
     selection=None,
     grow_limits=True,
-    procedural_geo=False,
     lighting_model='DEFAULT',
     opacity=1,
     emissive_intensity=emissive_intensity_default,
@@ -756,7 +772,6 @@ def scatter(
         size_selected=size_selected,
         geo=marker,
         selection=selection,
-        procedural_geo=procedural_geo,
         lighting_model=lighting_model,
         opacity=opacity,
         emissive_intensity=emissive_intensity,

@@ -162,7 +162,7 @@ class ScatterView extends widgets.WidgetView {
 
         this.create_mesh();
         this.add_to_scene();
-        this.model.on("change:size change:size_selected change:color change:color_selected change:sequence_index change:x change:y change:z change:selected change:vx change:vy change:vz",
+        this.model.on("change:size change:size_selected change:size_point change:color change:color_selected change:sequence_index change:x change:y change:z change:selected change:vx change:vy change:vz",
             this.on_change, this);
         this.model.on("change:geo change:connected", this.update_, this);
         this.model.on("change:texture", this._load_textures, this);
@@ -341,15 +341,8 @@ class ScatterView extends widgets.WidgetView {
         this.lighting_model = this.model.get("lighting_model");
 
         this.materials.forEach((material) => {
-            if(this.procedural_geo) {
-                material.vertexShader = require("raw-loader!../glsl/mesh-vertex.glsl");
-                material.fragmentShader = require("raw-loader!../glsl/mesh-fragment.glsl");
-            }
-            else {
-                material.vertexShader = require("raw-loader!../glsl/scatter-vertex.glsl");
-                material.fragmentShader = require("raw-loader!../glsl/scatter-fragment.glsl");
-            }
-
+            material.vertexShader = require("raw-loader!../glsl/scatter-vertex.glsl");
+            material.fragmentShader = require("raw-loader!../glsl/scatter-fragment.glsl");
             material.defines.DEFAULT_SHADING = false;
             material.defines.PHYSICAL_SHADING = false;
 
@@ -418,10 +411,8 @@ class ScatterView extends widgets.WidgetView {
             geo = "diamond";
         }
         const sprite = geo.endsWith("2d");
-        const buffer_geo = new THREE.BufferGeometry().fromGeometry(this.geos[geo]);
 
         this.procedural_geo = this.model.get("procedural_geo");
-
         const instanced_geo = this.procedural_geo ? new THREE.BufferGeometry() : new THREE.InstancedBufferGeometry();
 
         if(this.procedural_geo) {
@@ -429,6 +420,9 @@ class ScatterView extends widgets.WidgetView {
             let vert_y = this.model.get("y")[0];
             let vert_z = this.model.get("z")[0];
             let voxel_geometry = this.geos[geo];
+
+            var size_point = this.model.get("size_point");
+            voxel_geometry.scale(size_point, size_point, size_point);
             
             if(vert_x.length != vert_y.length && vert_x.length != vert_z.length) {
                 console.error("Mismatched lengths for model get x, y, z");
@@ -437,16 +431,16 @@ class ScatterView extends widgets.WidgetView {
                 let vertices = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 3);
                 let colors = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 4);
                 let indices = new Uint32Array(voxel_geometry.faces.length * vert_x.length * 3);
-                let currentColor = new THREE.Color(this.model.get("color"));
+                const currentColor = new THREE.Color(this.model.get("color"));
                 let faceOffset = 0;
                 let vIndex = 0;
                 let fIndex = 0;
                 let cIndex = 0;
-                for(let v=0; v<vert_x.length; v++) {
-                    for (let x=0; x<voxel_geometry.vertices.length; x++) {
-                        vertices[vIndex++] = voxel_geometry.vertices[x].x + vert_x[v];
-                        vertices[vIndex++] = voxel_geometry.vertices[x].y + vert_y[v];
-                        vertices[vIndex++] = voxel_geometry.vertices[x].z + vert_z[v];
+                for(let vert=0; vert<vert_x.length; vert++) {
+                    for (let v=0; v<voxel_geometry.vertices.length; v++) {
+                        vertices[vIndex++] = voxel_geometry.vertices[v].x + vert_x[vert];
+                        vertices[vIndex++] = voxel_geometry.vertices[v].y + vert_y[vert];
+                        vertices[vIndex++] = voxel_geometry.vertices[v].z + vert_z[vert];
                     }
                     for (let col=0; col<voxel_geometry.vertices.length; col++) {
                         colors[cIndex++] = currentColor.r;
@@ -454,11 +448,10 @@ class ScatterView extends widgets.WidgetView {
                         colors[cIndex++] = currentColor.b;
                         colors[cIndex++] = 1.0;
                     }
-
-                    for (let b=0; b<voxel_geometry.faces.length; b++) {
-                        indices[fIndex++] = voxel_geometry.faces[b].a + faceOffset;
-                        indices[fIndex++] = voxel_geometry.faces[b].b + faceOffset;
-                        indices[fIndex++] = voxel_geometry.faces[b].c + faceOffset;
+                    for (let i=0; i<voxel_geometry.faces.length; i++) {
+                        indices[fIndex++] = voxel_geometry.faces[i].a + faceOffset;
+                        indices[fIndex++] = voxel_geometry.faces[i].b + faceOffset;
+                        indices[fIndex++] = voxel_geometry.faces[i].c + faceOffset;
                     }
                     faceOffset += voxel_geometry.vertices.length;
                 }
@@ -468,8 +461,8 @@ class ScatterView extends widgets.WidgetView {
                 instanced_geo.setDrawRange(0, indices.length-1);
             }
         }
-        else
-        {
+        else {
+            const buffer_geo = new THREE.BufferGeometry().fromGeometry(this.geos[geo]);
             const vertices = (buffer_geo.attributes.position as any).clone();
             instanced_geo.addAttribute("position", vertices);
         }
@@ -487,8 +480,8 @@ class ScatterView extends widgets.WidgetView {
 
         //Fix for Uncaught TypeError: Cannot read property 'BYTES_PER_ELEMENT' of undefined
         current.ensure_array(["color"]);
-        // Workaround for shader issue - Threejs already uses the name color 
         if(!this.procedural_geo) {
+            // Workaround for shader issue - Threejs already uses the name color
             instanced_geo.addAttribute("color_current", new THREE.BufferAttribute(current.array_vec4.color, 4));
         }
 
@@ -567,6 +560,9 @@ class ScatterView extends widgets.WidgetView {
         }
 
         for (const key of Object.keys(this.attributes_changed)) {
+            if(key == "size_point") {
+                continue;
+            }
             const changed_properties = this.attributes_changed[key];
             const property = "animation_time_" + key;
             // console.log("animating", key)
@@ -598,6 +594,7 @@ class ScatterModel extends widgets.WidgetModel {
         selected: serialize.array_or_json,
         size: serialize.array_or_json,
         size_selected: serialize.array_or_json,
+        size_point: serialize.array_or_json,
         color: serialize.color_or_json,
         color_selected: serialize.color_or_json,
         texture: serialize.texture,
@@ -622,6 +619,7 @@ class ScatterModel extends widgets.WidgetModel {
              _view_module_version: semver_range,
             size: 5,
             size_selected: 7,
+            size_point: 1,
             color: "red",
             color_selected: "white",
             geo: "diamond",
