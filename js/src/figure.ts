@@ -5,7 +5,6 @@ import * as Mustache from "mustache";
 import * as screenfull from "screenfull";
 import * as THREE from "three";
 import * as THREEtext2d from "three-text2d";
-import { LightModel, LightView} from "./light";
 import { MeshModel, MeshView} from "./mesh";
 import { ScatterModel, ScatterView} from "./scatter";
 import { copy_image_to_clipboard, download_image, select_text} from "./utils";
@@ -31,6 +30,7 @@ import "./three/OrbitControls.js";
 import "./three/StereoEffect.js";
 import "./three/THREEx.FullScreen.js";
 import "./three/TrackballControls.js";
+import { timeThursday, thresholdScott } from "d3";
 
 const shaders = {
     screen_fragment: require("raw-loader!../glsl/screen-fragment.glsl"),
@@ -211,7 +211,7 @@ class FigureView extends widgets.DOMWidgetView {
     mesh_views: { [key: string]: MeshView };
     scatter_views: { [key: string]: ScatterView };
     volume_views: { [key: string]: VolumeView };
-    light_views: { [key: string]: LightView };
+    lights: { [key: string]: THREE.Light };
     volume_back_target: THREE.WebGLRenderTarget;
     geometry_depth_target: THREE.WebGLRenderTarget;
     color_pass_target: THREE.WebGLRenderTarget;
@@ -658,7 +658,6 @@ class FigureView extends widgets.DOMWidgetView {
         this.mesh_views = {};
         this.scatter_views = {};
         this.volume_views = {};
-        this.light_views = {};
 
         let render_width = width;
         const render_height = height;
@@ -1516,41 +1515,72 @@ class FigureView extends widgets.DOMWidgetView {
         }
     }
 
-    update_lights() {
-        const lights = this.model.get("lights") as LightModel[]; 
+    async update_lights() {
+        
+        // Initialize lights if this is the first pass
+        if (!this.lights) {
+            this.lights = {}
+        }
+        
+        const lights = this.model.get("lights"); 
         if (lights.length !== 0) { // So now check if list has length 0
-            const current_light_cids = [];
-            
-            lights.forEach((light_model) => {
-                current_light_cids.push(light_model.cid);
-                if (!(light_model.cid in this.light_views)) {
-                    const options = {
-                        parent: this,
-                    };
-                    const light_view = new LightView({
-                        options,
-                        model: light_model,
-                    });
-                    light_view.render();
-                    this.light_views[light_model.cid] = light_view;
+            // Change mesh lighting model
+            for (let mesh_key in this.mesh_views) {
+                this.mesh_views[mesh_key].force_lighting_model();
+            }
+            for (let scatter_key in this.scatter_views) {
+                this.scatter_views[scatter_key].force_lighting_model();
+            }
 
+            const current_light_cids = [];
+            lights.forEach(async (light_model) => {
+                if (!(light_model.cid in this.lights)) {                   
+                    const light = light_model.obj;
+                    if (light.castShadow) {
+                        this.update_shadows()
+                    }
+
+                    const on_light_change = () => {
+                        if (light.castShadow) {
+                            this.update_shadows()
+                        }
+
+                        this.update();                        
+                    }
+
+                    light_model.on("change", on_light_change);
+                    light_model.on("childchange", on_light_change);
+
+                    this.lights[light_model.cid] = light;
+                    
+                    if (light.target) {
+                        this.scene_scatter.add(light.target);
+                    }
+                    this.scene_scatter.add(light);
                 }
+
+                // Do not delete current lights
+                current_light_cids.push(light_model.cid);
             });
 
-            // Remove old lights
-            for (const cid of Object.keys(this.light_views)) {
+            // Remove previous lights
+            for (const cid of Object.keys(this.lights)) {
+                const light = this.lights[cid];
                 
-                const light_view = this.light_views[cid];
                 if (current_light_cids.indexOf(cid) === -1) {
-                    light_view.remove_from_scene();
-                    delete this.light_views[cid];
+                    this.scene_scatter.remove(light);
+                    delete this.lights[cid];
                 }
-                
             }
-        } else {
-            this.light_views = {};
-        }
 
+            this.update();
+        }
+    }
+
+    update_shadows() {
+        // Activate shadow mapping
+        this.renderer.shadowMap.enabled = true
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     }
 
     transition(f, on_done, context) {
