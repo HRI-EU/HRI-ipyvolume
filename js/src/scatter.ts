@@ -420,7 +420,7 @@ class ScatterView extends widgets.WidgetView {
             let vert_x = this.model.get("x")[0];
             let vert_y = this.model.get("y")[0];
             let vert_z = this.model.get("z")[0];
-            let voxel_geometry = this.geos[geo];
+            let voxel_geometry = this.geos[geo].clone();
 
             var size_point = this.model.get("size_point");
             voxel_geometry.scale(size_point, size_point, size_point);
