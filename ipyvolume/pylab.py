@@ -1798,19 +1798,6 @@ def hemisphere_light(
 
     return light
 
-def _wrap_light(light, fig):
-    light.container = fig
-    light_type = type(light)
-
-    if light_type is pythreejs.DirectionalLight and not hasattr(light_type, 'set_camera_size'):
-        def set_camera_size(self, value):
-            self.shadow.camera.left   = -value/2
-            self.shadow.camera.right  =  value/2
-            self.shadow.camera.top    =  value/2
-            self.shadow.camera.bottom = -value/2 
-
-        light_type.set_camera_size = set_camera_size
-
 def directional_light(
     light_color=default_color_selected, 
     intensity = 1, 
@@ -1861,7 +1848,6 @@ def directional_light(
     )
 
     fig = gcf()
-    _wrap_light(light, fig)
 
     fig.lights = fig.lights + [light]
 
@@ -1925,7 +1911,6 @@ def spot_light(
     )
     
     fig = gcf()
-    _wrap_light(light, fig)
 
     fig.lights = fig.lights + [light]
 
@@ -1981,7 +1966,6 @@ def point_light(
 
 
     fig = gcf()
-    _wrap_light(light, fig)
 
     fig.lights = fig.lights + [light]
 
