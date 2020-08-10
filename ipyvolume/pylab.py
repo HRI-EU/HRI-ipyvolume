@@ -619,7 +619,18 @@ def plot_mesh(
     fig.meshes = fig.meshes + [mesh]
     return mesh
 
-@_docsubst
+def plot_voxel(
+    d,
+    pos_offset=[0,0,0],
+    scale_factor=1,
+    marker="box",
+    color=default_color,
+    opacity=1.0
+):
+    print("plot_voxel")
+    return None
+
+#@_docsubst
 def plot_pointcloud(
     x,
     y,
@@ -632,7 +643,6 @@ def plot_pointcloud(
     marker="box",
     selection=None,
     grow_limits=True,
-    procedural_geo=False,
     lighting_model='DEFAULT',
     opacity=1,
     emissive_intensity=emissive_intensity_default,
