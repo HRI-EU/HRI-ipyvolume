@@ -41,6 +41,9 @@ class ScatterView extends widgets.WidgetView {
     cast_shadow : any;
     receive_shadow : any;
     procedural_geo : any;
+    vert_x : any;
+    vert_y : any;
+    vert_z : any;
 
     render() {
 
@@ -405,6 +408,23 @@ class ScatterView extends widgets.WidgetView {
 
         this.renderer.update();
     }
+
+    create_array(val, vert) {
+        if(typeof(val) == 'object') {
+            return val[0];
+        } 
+        else if (typeof(val) == 'number' && typeof(vert) == 'object') {
+            var retVal = new Float32Array(vert && isFinite(vert.length) ? vert.length : 1); 
+            for(var i = 0 ; i < retVal.length; i++) {
+                retVal[i] = val;
+            }
+            return retVal;
+        }
+        else {
+            return new Float32Array(1);
+        }
+    }
+
     create_mesh() {
         let geo = this.model.get("geo");
         // console.log(geo)
@@ -415,33 +435,34 @@ class ScatterView extends widgets.WidgetView {
 
         this.procedural_geo = this.model.get("procedural_geo");
         const instanced_geo = this.procedural_geo ? new THREE.BufferGeometry() : new THREE.InstancedBufferGeometry();
-
+        console.log(typeof(this.model.get("x")));
         if(this.procedural_geo) {
-            let vert_x = this.model.get("x")[0];
-            let vert_y = this.model.get("y")[0];
-            let vert_z = this.model.get("z")[0];
+
+            this.vert_x = this.create_array(this.model.get("x"), this.vert_x);//this.model.get("x")[0];
+            this.vert_y = this.create_array(this.model.get("y"), this.vert_y);//this.model.get("y")[0];
+            this.vert_z = this.create_array(this.model.get("z"), this.vert_z);//this.model.get("z")[0];
             let voxel_geometry = this.geos[geo].clone();
 
             var size_point = this.model.get("size_point");
             voxel_geometry.scale(size_point, size_point, size_point);
             
-            if(vert_x.length != vert_y.length && vert_x.length != vert_z.length) {
+            if(this.vert_x.length != this.vert_y.length && this.vert_x.length != this.vert_z.length) {
                 console.error("Mismatched lengths for model get x, y, z");
             }
             else {
-                let vertices = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 3);
-                let colors = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 4);
-                let indices = new Uint32Array(voxel_geometry.faces.length * vert_x.length * 3);
+                let vertices = new Float32Array(voxel_geometry.vertices.length * this.vert_x.length * 3);
+                let colors = new Float32Array(voxel_geometry.vertices.length * this.vert_x.length * 4);
+                let indices = new Uint32Array(voxel_geometry.faces.length * this.vert_x.length * 3);
                 const currentColor = new THREE.Color(this.model.get("color"));
                 let faceOffset = 0;
                 let vIndex = 0;
                 let fIndex = 0;
                 let cIndex = 0;
-                for(let vert=0; vert<vert_x.length; vert++) {
+                for(let vert=0; vert<this.vert_x.length; vert++) {
                     for (let v=0; v<voxel_geometry.vertices.length; v++) {
-                        vertices[vIndex++] = voxel_geometry.vertices[v].x + vert_x[vert];
-                        vertices[vIndex++] = voxel_geometry.vertices[v].y + vert_y[vert];
-                        vertices[vIndex++] = voxel_geometry.vertices[v].z + vert_z[vert];
+                        vertices[vIndex++] = voxel_geometry.vertices[v].x + this.vert_x[vert];
+                        vertices[vIndex++] = voxel_geometry.vertices[v].y + this.vert_y[vert];
+                        vertices[vIndex++] = voxel_geometry.vertices[v].z + this.vert_z[vert];
                     }
                     for (let col=0; col<voxel_geometry.vertices.length; col++) {
                         colors[cIndex++] = currentColor.r;
