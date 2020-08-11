@@ -40,7 +40,7 @@ class ScatterView extends widgets.WidgetView {
     metalness : any;
     cast_shadow : any;
     receive_shadow : any;
-    procedural_geo : any;
+    use_instanced : any;
     vert_x : any;
     vert_y : any;
     vert_z : any;
@@ -408,7 +408,8 @@ class ScatterView extends widgets.WidgetView {
 
         this.renderer.update();
     }
-
+    
+    //workaround for the case when model x,y,z are numbers instead of Float32Array
     create_array(val, vert) {
         if(typeof(val) == 'object') {
             return val[0];
@@ -421,7 +422,11 @@ class ScatterView extends widgets.WidgetView {
             return retVal;
         }
         else {
-            return new Float32Array(1);
+            var retVal = new Float32Array(1);
+            if (typeof(val) == 'number') {
+                retVal[0] = val;
+            }
+            return retVal;
         }
     }
 
@@ -433,14 +438,14 @@ class ScatterView extends widgets.WidgetView {
         }
         const sprite = geo.endsWith("2d");
 
-        this.procedural_geo = this.model.get("procedural_geo");
-        const instanced_geo = this.procedural_geo ? new THREE.BufferGeometry() : new THREE.InstancedBufferGeometry();
+        this.use_instanced = this.model.get("use_instanced");
+        const instanced_geo = this.use_instanced ? new THREE.InstancedBufferGeometry() : new THREE.BufferGeometry();
         console.log(typeof(this.model.get("x")));
-        if(this.procedural_geo) {
+        if(!this.use_instanced) {
 
-            this.vert_x = this.create_array(this.model.get("x"), this.vert_x);//this.model.get("x")[0];
-            this.vert_y = this.create_array(this.model.get("y"), this.vert_y);//this.model.get("y")[0];
-            this.vert_z = this.create_array(this.model.get("z"), this.vert_z);//this.model.get("z")[0];
+            this.vert_x = this.create_array(this.model.get("x"), this.vert_x);
+            this.vert_y = this.create_array(this.model.get("y"), this.vert_y);
+            this.vert_z = this.create_array(this.model.get("z"), this.vert_z);
             let voxel_geometry = this.geos[geo].clone();
 
             var size_point = this.model.get("size_point");
@@ -502,7 +507,7 @@ class ScatterView extends widgets.WidgetView {
 
         //Fix for Uncaught TypeError: Cannot read property 'BYTES_PER_ELEMENT' of undefined
         current.ensure_array(["color"]);
-        if(!this.procedural_geo) {
+        if(this.use_instanced) {
             // Workaround for shader issue - Threejs already uses the name color
             instanced_geo.addAttribute("color_current", new THREE.BufferAttribute(current.array_vec4.color, 4));
         }
@@ -659,7 +664,7 @@ class ScatterModel extends widgets.WidgetModel {
             metalness : 0,
             cast_shadow : false,
             receive_shadow : false,
-            procedural_geo : false
+            use_instanced : false
         };
     }
 }
