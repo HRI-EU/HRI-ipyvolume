@@ -3,6 +3,7 @@
 from __future__ import absolute_import
 from __future__ import division
 import pythreejs
+import numpy as np #TODO: Remove
 
 __all__ = [
     'current',
@@ -20,6 +21,7 @@ __all__ = [
     'plot_wireframe',
     'plot_mesh',
     'plot_pointcloud',
+    'plot_voxel',
     'plot',
     'scatter',
     'quiver',
@@ -619,16 +621,58 @@ def plot_mesh(
     fig.meshes = fig.meshes + [mesh]
     return mesh
 
+# def plot_voxel(
+#     d,
+#     pos_offset=[0,0,0],
+#     scale_factor=1,
+#     marker="box",
+#     color=default_color,
+#     opacity=1.0
+# ):
+#@_docsubst
 def plot_voxel(
-    d,
-    pos_offset=[0,0,0],
-    scale_factor=1,
-    marker="box",
+    x,
+    y,
+    z,
     color=default_color,
-    opacity=1.0
+    size=default_size,
+    size_selected=default_size_selected,
+    size_point=1,
+    color_selected=default_color_selected,
+    marker="box",
+    selection=None,
+    grow_limits=True,
+    lighting_model='DEFAULT',
+    opacity=1,
+    emissive_intensity=emissive_intensity_default,
+    roughness=0,
+    metalness=0,
+    **kwargs
 ):
-    print("plot_voxel")
-    return None
+    fig = gcf()
+    if grow_limits:
+        _grow_limits(x, y, z)
+    s = ipv.Voxel(
+        x=x,
+        y=y,
+        z=z,
+        color=color,
+        size=size,
+        color_selected=color_selected,
+        size_selected=size_selected,
+        size_point=size_point,
+        geo=marker,
+        selection=selection,
+        use_instanced=False,
+        lighting_model=lighting_model,
+        opacity=opacity,
+        emissive_intensity=emissive_intensity,
+        roughness=roughness,
+        metalness=metalness,
+        **kwargs
+    )
+    fig.scatters = fig.scatters + [s]
+    return s
 
 #@_docsubst
 def plot_pointcloud(

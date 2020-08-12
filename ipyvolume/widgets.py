@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import
 
-__all__ = ['Mesh', 'Scatter', 'Volume', 'Figure', 'quickquiver', 'quickscatter', 'quickvolshow']
+__all__ = ['Mesh', 'Scatter', 'Volume', 'Figure', 'Voxel', 'quickquiver', 'quickscatter', 'quickvolshow', 'observed_array']
 
 import logging
 import warnings
@@ -166,6 +166,33 @@ class Scatter(widgets.Widget):
     def _default_line_material(self):
         return pythreejs.ShaderMaterial()
 
+class observed_array(np.ndarray):
+    callback_obj=None
+    callback_func=None
+    def set_callback(self, cb_obj, cb_fcn):
+        self.callback_obj = cb_obj    
+        self.callback_func = cb_fcn
+    def __getitem__(self, key):
+        if self.callback_func and self.callback_obj and (isinstance(key, int) or (isinstance(key, tuple) and not isinstance(key[0], int)) or (isinstance(key, tuple) and key[0] == -1 and key[1] == -1 and key[2] == -1)):
+            self.callback_func(self.callback_obj)
+        return super(observed_array, self).__getitem__(key)
+
+@widgets.register
+class Voxel(Scatter):
+    def vox_cb(self, obj, *args, **kwargs):
+        print("Voxel Callback Compute x,y,z")
+        obj.size = obj.size + 1 #TODO: Remove this line
+    d_param = observed_array([1,1,1])
+    #d_param.set_callback(self, vox_cb)
+    @property
+    def d(self):
+        return self.d_param
+    @d.setter
+    def d(self, value):
+        self.d_param = observed_array(value.shape)
+        self.d_param.set_callback(self, self.vox_cb)
+        self.d_param.values = value
+        self.vox_cb(self)
 
 @widgets.register
 class Volume(widgets.Widget):
