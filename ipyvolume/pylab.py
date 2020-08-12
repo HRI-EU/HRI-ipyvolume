@@ -624,11 +624,62 @@ def plot_mesh(
 # def plot_voxel(
 #     d,
 #     pos_offset=[0,0,0],
-#     scale_factor=1,
+#     voxel_scale=1,
 #     marker="box",
+#     hollow=True,
+#     hollow_threshold=0.5,
+#     grow_limits=True,
 #     color=default_color,
-#     opacity=1.0
+#     opacity=1.0,
+#     lighting_model='DEFAULT',
+#     emissive_intensity=emissive_intensity_default,
+#     roughness=0,
+#     metalness=0,
+#     **kwargs
 # ):
+#     coords = ipv.Voxel.d_to_xyz(d=d, 
+#                 offset=pos_offset, 
+#                 hollow=hollow, 
+#                 threshold=hollow_threshold)
+#     x=coords[:,0] 
+#     y=coords[:,1]
+#     z=coords[:,2] 
+#     dd = np.copy(d)
+#     fig = gcf()
+    
+#     s = ipv.Voxel(#d=d,
+#         x=x,
+#         y=y,
+#         z=z,
+#         color=color,
+#         color_selected=color,
+#         size=1,
+#         size_selected=default_size_selected,
+#         size_point=voxel_scale,
+#         geo=marker,
+#         selection=None,
+#         use_instanced=False,
+#         lighting_model=lighting_model,
+#         opacity=opacity,
+#         emissive_intensity=emissive_intensity,
+#         roughness=roughness,
+#         metalness=metalness,
+#         **kwargs
+#     )
+#     if grow_limits:
+#         _grow_limits(s.x, s.y, s.z)
+
+#     #s.d = dd
+#     s.d_param = ipv.observed_array(d.shape)
+#     s.d_param.set_callback(s, s.vox_cb)
+#     s.d_param.values = dd
+    
+#     print(s.d_param)
+#     print(type(s.d_param))
+#     print(s.d_param.shape)
+#     fig.scatters = fig.scatters + [s]
+#     return s
+
 #@_docsubst
 def plot_voxel(
     x,
@@ -671,6 +722,7 @@ def plot_voxel(
         metalness=metalness,
         **kwargs
     )
+
     fig.scatters = fig.scatters + [s]
     return s
 

@@ -12,6 +12,8 @@ import ipywidgets as widgets  # we should not have widgets under two names
 import ipywebrtc
 import pythreejs
 import traitlets
+from scipy import ndimage
+
 from traitlets import Unicode, Integer
 from traittypes import Array
 
@@ -169,11 +171,15 @@ class Scatter(widgets.Widget):
 class observed_array(np.ndarray):
     callback_obj=None
     callback_func=None
+    def __new__(cls, *args, **kwargs):
+        print('In __new__ with class %s' % cls)
+        return super(observed_array, cls).__new__(cls, *args, **kwargs)
     def set_callback(self, cb_obj, cb_fcn):
         self.callback_obj = cb_obj    
         self.callback_func = cb_fcn
     def __getitem__(self, key):
         if self.callback_func and self.callback_obj and (isinstance(key, int) or (isinstance(key, tuple) and not isinstance(key[0], int)) or (isinstance(key, tuple) and key[0] == -1 and key[1] == -1 and key[2] == -1)):
+            print("{} {}".format(key, type(key)))
             self.callback_func(self.callback_obj)
         return super(observed_array, self).__getitem__(key)
 
@@ -181,18 +187,58 @@ class observed_array(np.ndarray):
 class Voxel(Scatter):
     def vox_cb(self, obj, *args, **kwargs):
         print("Voxel Callback Compute x,y,z")
-        obj.size = obj.size + 1 #TODO: Remove this line
+        coords = Voxel.d_to_xyz(obj.d, offset=[0,0,0], hollow=True, threshold=0.5)    
+        obj.x=coords[:,0] 
+        obj.y=coords[:,1]
+        obj.z=coords[:,2] 
+    
     d_param = observed_array([1,1,1])
-    #d_param.set_callback(self, vox_cb)
+
     @property
     def d(self):
         return self.d_param
     @d.setter
     def d(self, value):
-        self.d_param = observed_array(value.shape)
+        self.d_param=observed_array(value.shape)
+        np.copyto(self.d_param, value)
         self.d_param.set_callback(self, self.vox_cb)
-        self.d_param.values = value
-        self.vox_cb(self)
+
+    @staticmethod
+    def d_to_xyz(d, offset=[0,0,0], hollow=True, threshold=0.5):
+        #print(d)
+        boxes = None
+        if hollow == True:
+            # cut material below threshold
+            v_material = d
+            v_material[d<threshold] = 0
+            v_material[d>=threshold] = 1 
+
+            # remove voxels surounded by material on all sides
+            v_hollow = np.copy(v_material)  
+
+            # "hollowing model"
+            v_temp = ndimage.minimum_filter(v_material, size=3)
+            # TODO handle non 0 or 1 values
+            v_hollow = v_material-v_temp
+    
+            #printprint(f"Material Voxels:{np.sum(v_material)}")
+            #print(f"Hollow Voxels:{np.sum(v_hollow)}")
+    
+            boxes = np.array(np.nonzero(v_hollow)).transpose()
+            boxes = boxes.astype(np.float)
+        else:
+            boxes = np.array(np.nonzero(d)).transpose()
+            boxes = boxes.astype(np.float)
+
+        # set model into origin
+        #print(boxes.shape)
+        #print(boxes)
+        # for i in range(3): 
+        #     boxes[:,i] = boxes[:,i] - boxes[:,i].min()
+        #     boxes[:,i] = boxes[:,i] - boxes[:,i].max()/2
+
+        return boxes
+
 
 @widgets.register
 class Volume(widgets.Widget):
