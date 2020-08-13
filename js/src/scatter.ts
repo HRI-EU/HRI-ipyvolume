@@ -221,8 +221,8 @@ class ScatterView extends widgets.WidgetView {
         //currently, no shadow support because of InstancedBufferGeometry
         this.cast_shadow = this.model.get("cast_shadow");
         this.receive_shadow = this.model.get("receive_shadow");
-        this.mesh.castShadow = false;
-        this.mesh.receiveShadow = false;
+        this.mesh.castShadow = true;
+        this.mesh.receiveShadow = true;
 
         this.renderer.scene_scatter.add(this.mesh);
         if (this.line_segments) {

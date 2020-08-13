@@ -178,7 +178,7 @@ class observed_array(np.ndarray):
         self.callback_obj = cb_obj    
         self.callback_func = cb_fcn
     def __getitem__(self, key):
-        if self.callback_func and self.callback_obj and (isinstance(key, int) or (isinstance(key, tuple) and not isinstance(key[0], int)) or (isinstance(key, tuple) and key[0] == -1 and key[1] == -1 and key[2] == -1)):
+        if self.callback_func and self.callback_obj and (isinstance(key, int) or (isinstance(key, tuple) and not isinstance(key[0], int)) ): #or (isinstance(key, tuple) and key[0] == -1 and key[1] == -1 and key[2] == -1)
             print("{} {}".format(key, type(key)))
             self.callback_func(self.callback_obj)
         return super(observed_array, self).__getitem__(key)
@@ -187,10 +187,11 @@ class observed_array(np.ndarray):
 class Voxel(Scatter):
     def vox_cb(self, obj, *args, **kwargs):
         print("Voxel Callback Compute x,y,z")
-        coords = Voxel.d_to_xyz(obj.d, offset=[0,0,0], hollow=True, threshold=0.5)    
-        obj.x=coords[:,0] 
-        obj.y=coords[:,1]
-        obj.z=coords[:,2] 
+        print(obj.d)
+        #coords = Voxel.d_to_xyz(obj.d, offset=[0,0,0], hollow=True, threshold=0.5)    
+        #obj.x=coords[:,0] 
+        #obj.y=coords[:,1]
+        #obj.z=coords[:,2] 
     
     d_param = observed_array([1,1,1])
 
@@ -233,9 +234,9 @@ class Voxel(Scatter):
         # set model into origin
         #print(boxes.shape)
         #print(boxes)
-        # for i in range(3): 
-        #     boxes[:,i] = boxes[:,i] - boxes[:,i].min()
-        #     boxes[:,i] = boxes[:,i] - boxes[:,i].max()/2
+        for i in range(3): 
+            boxes[:,i] = boxes[:,i] - boxes[:,i].min()
+            boxes[:,i] = boxes[:,i] - boxes[:,i].max()/2
 
         return boxes
 
