@@ -187,11 +187,17 @@ class observed_array(np.ndarray):
 class Voxel(Scatter):
     def vox_cb(self, obj, *args, **kwargs):
         print("Voxel Callback Compute x,y,z")
-        print(obj.d)
-        #coords = Voxel.d_to_xyz(obj.d, offset=[0,0,0], hollow=True, threshold=0.5)    
-        #obj.x=coords[:,0] 
-        #obj.y=coords[:,1]
-        #obj.z=coords[:,2] 
+        #print(obj.d)
+        coords = Voxel.d_to_xyz(obj.d, offset=[0,0,0], hollow=True, threshold=0.5, center=False)   
+        #print(coords)
+        obj.x=np.ndarray(coords[:,0].shape) 
+        np.copyto(obj.x, coords[:,0])
+        obj.y=np.ndarray(coords[:,1].shape) 
+        np.copyto(obj.y, coords[:,1])
+        obj.z=np.ndarray(coords[:,2].shape) 
+        np.copyto(obj.z, coords[:,2])
+        
+        print("Finished x y z update") 
     
     d_param = observed_array([1,1,1])
 
@@ -205,38 +211,39 @@ class Voxel(Scatter):
         self.d_param.set_callback(self, self.vox_cb)
 
     @staticmethod
-    def d_to_xyz(d, offset=[0,0,0], hollow=True, threshold=0.5):
+    def d_to_xyz(d, offset=[0,0,0], hollow=True, threshold=0.5, center=True):
         #print(d)
         boxes = None
-        if hollow == True:
-            # cut material below threshold
-            v_material = d
-            v_material[d<threshold] = 0
-            v_material[d>=threshold] = 1 
+        # if hollow == True:
+        #     # cut material below threshold
+        #     v_material = d
+        #     v_material[d<threshold] = 0
+        #     v_material[d>=threshold] = 1 
 
-            # remove voxels surounded by material on all sides
-            v_hollow = np.copy(v_material)  
+        #     # remove voxels surounded by material on all sides
+        #     v_hollow = np.copy(v_material)  
 
-            # "hollowing model"
-            v_temp = ndimage.minimum_filter(v_material, size=3)
-            # TODO handle non 0 or 1 values
-            v_hollow = v_material-v_temp
+        #     # "hollowing model"
+        #     v_temp = ndimage.minimum_filter(v_material, size=3)
+        #     # TODO handle non 0 or 1 values
+        #     v_hollow = v_material-v_temp
     
-            #printprint(f"Material Voxels:{np.sum(v_material)}")
-            #print(f"Hollow Voxels:{np.sum(v_hollow)}")
+        #     #printprint(f"Material Voxels:{np.sum(v_material)}")
+        #     #print(f"Hollow Voxels:{np.sum(v_hollow)}")
     
-            boxes = np.array(np.nonzero(v_hollow)).transpose()
-            boxes = boxes.astype(np.float)
-        else:
-            boxes = np.array(np.nonzero(d)).transpose()
-            boxes = boxes.astype(np.float)
+        #     boxes = np.array(np.nonzero(v_hollow)).transpose()
+        #     boxes = boxes.astype(np.float)
+        # else:
+        boxes = np.array(np.nonzero(d)).transpose()
+        boxes = boxes.astype(np.float)
 
         # set model into origin
         #print(boxes.shape)
         #print(boxes)
-        for i in range(3): 
-            boxes[:,i] = boxes[:,i] - boxes[:,i].min()
-            boxes[:,i] = boxes[:,i] - boxes[:,i].max()/2
+        if boxes.size > 0 and center:
+            for i in range(3): 
+                boxes[:,i] = boxes[:,i] - boxes[:,i].min()
+                boxes[:,i] = boxes[:,i] - boxes[:,i].max()/2
 
         return boxes
 
