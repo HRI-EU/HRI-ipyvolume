@@ -458,9 +458,9 @@ class ScatterView extends widgets.WidgetView {
         console.log(typeof(this.model.get("x")));
         if(!this.use_instanced) {
 
-            var vert_x = this.model.get("x")[0];//this.create_array(this.model.get("x"), this.vert_x);
-            var vert_y = this.model.get("y")[0];//this.create_array(this.model.get("y"), this.vert_y);
-            var vert_z = this.model.get("z")[0];//this.create_array(this.model.get("z"), this.vert_z);
+            var vert_x = this.create_array(this.model.get("x"), this.vert_x);//this.model.get("x")[0];//
+            var vert_y = this.create_array(this.model.get("y"), this.vert_y);//this.model.get("y")[0];//
+            var vert_z = this.create_array(this.model.get("z"), this.vert_z);//this.model.get("z")[0];//
             console.log(vert_x)
             console.log(vert_y)
             console.log(vert_z)
