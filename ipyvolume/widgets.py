@@ -141,6 +141,7 @@ class Scatter(widgets.Widget):
     metalness = traitlets.CFloat(0).tag(sync=True)
     cast_shadow = traitlets.CBool(default_value=False).tag(sync=True)
     receive_shadow = traitlets.CBool(default_value=False).tag(sync=True)
+    pause_update = traitlets.CBool(default_value=False).tag(sync=True)
 
     texture = traitlets.Union(
         [
@@ -178,10 +179,15 @@ class observed_array(np.ndarray):
         self.callback_obj = cb_obj    
         self.callback_func = cb_fcn
     def __getitem__(self, key):
-        if self.callback_func and self.callback_obj and (isinstance(key, int) or (isinstance(key, tuple) and not isinstance(key[0], int)) ): #or (isinstance(key, tuple) and key[0] == -1 and key[1] == -1 and key[2] == -1)
+        if self.callback_func and self.callback_obj and (isinstance(key, int) or (isinstance(key, tuple) and not isinstance(key[0], int))): # or (isinstance(key, tuple) and key[0] == -1 and key[1] == -1 and key[2] == -1)
             print("{} {}".format(key, type(key)))
             self.callback_func(self.callback_obj)
         return super(observed_array, self).__getitem__(key)
+    def __setitem__(self,key,value):
+        print("SET")
+        retval = super(observed_array, self).__setitem__(key, value)
+        self.callback_func(self.callback_obj)
+        return retval
 
 @widgets.register
 class Voxel(Scatter):
@@ -189,14 +195,18 @@ class Voxel(Scatter):
         print("Voxel Callback Compute x,y,z")
         #print(obj.d)
         coords = Voxel.d_to_xyz(obj.d, offset=[0,0,0], hollow=True, threshold=0.5, center=False)   
-        #print(coords)
+        print(coords[:,0])
+        print(coords[:,1])
+        print(coords[:,2])
+        #
+        obj.pause_update = True
         obj.x=np.ndarray(coords[:,0].shape) 
         np.copyto(obj.x, coords[:,0])
         obj.y=np.ndarray(coords[:,1].shape) 
         np.copyto(obj.y, coords[:,1])
         obj.z=np.ndarray(coords[:,2].shape) 
         np.copyto(obj.z, coords[:,2])
-        
+        obj.pause_update = False
         print("Finished x y z update") 
     
     d_param = observed_array([1,1,1])
@@ -240,7 +250,7 @@ class Voxel(Scatter):
         # set model into origin
         #print(boxes.shape)
         #print(boxes)
-        if boxes.size > 0 and center:
+        if boxes.size > 0:
             for i in range(3): 
                 boxes[:,i] = boxes[:,i] - boxes[:,i].min()
                 boxes[:,i] = boxes[:,i] - boxes[:,i].max()/2

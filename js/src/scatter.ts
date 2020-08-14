@@ -165,6 +165,7 @@ class ScatterView extends widgets.WidgetView {
 
         this.create_mesh();
         this.add_to_scene();
+        this.model.on("change:pause_update", this.on_change, this);
         this.model.on("change:size change:size_selected change:size_point change:color change:color_selected change:sequence_index change:x change:y change:z change:selected change:vx change:vy change:vz",
             this.on_change, this);
         this.model.on("change:geo change:connected", this.update_, this);
@@ -219,16 +220,16 @@ class ScatterView extends widgets.WidgetView {
     add_to_scene() {
 
         //currently, no shadow support because of InstancedBufferGeometry
-        this.cast_shadow = this.model.get("cast_shadow");
-        this.receive_shadow = this.model.get("receive_shadow");
+        this.cast_shadow = true;//this.model.get("cast_shadow");
+        this.receive_shadow = true;//this.model.get("receive_shadow");
         this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
 
         this.renderer.scene_scatter.add(this.mesh);
         if (this.line_segments) {
             this.renderer.scene_scatter.add(this.line_segments);
-            this.line_segments.castShadow = false;
-            this.line_segments.receiveShadow = false;
+            this.line_segments.castShadow = true;
+            this.line_segments.receiveShadow = true;
         }
     }
     remove_from_scene() {
@@ -243,8 +244,14 @@ class ScatterView extends widgets.WidgetView {
         }
     }
     on_change() {
+
+        if(this.model.get("pause_update")) {
+            console.log("pause_update (on_change)");
+            return;
+        }
         console.log(this.model.changedAttributes());
         for (const key of Object.keys(this.model.changedAttributes())) {
+            if(key=="pause_update") continue;
             this.previous_values[key] = this.model.previous(key);
             // attributes_changed keys will say what needs to be animated, it's values are the properties in
             // this.previous_values that need to be removed when the animation is done
@@ -275,6 +282,10 @@ class ScatterView extends widgets.WidgetView {
         this.update_();
     }
     update_() {
+        if(this.model.get("pause_update")) {
+            console.log("pause_update (update_)");
+            return;
+        }
         this.remove_from_scene();
         this.create_mesh();
         this.add_to_scene();
@@ -431,6 +442,10 @@ class ScatterView extends widgets.WidgetView {
     }
 
     create_mesh() {
+        if(this.model.get("pause_update")) {
+            console.log("pause_update (create_mesh)");
+            return;
+        }
         let geo = this.model.get("geo");
         // console.log(geo)
         if (!geo) {
@@ -443,39 +458,48 @@ class ScatterView extends widgets.WidgetView {
         console.log(typeof(this.model.get("x")));
         if(!this.use_instanced) {
 
-            this.vert_x = this.create_array(this.model.get("x"), this.vert_x);
-            this.vert_y = this.create_array(this.model.get("y"), this.vert_y);
-            this.vert_z = this.create_array(this.model.get("z"), this.vert_z);
-            let voxel_geometry = this.geos[geo].clone();
+            var vert_x = this.model.get("x")[0];//this.create_array(this.model.get("x"), this.vert_x);
+            var vert_y = this.model.get("y")[0];//this.create_array(this.model.get("y"), this.vert_y);
+            var vert_z = this.model.get("z")[0];//this.create_array(this.model.get("z"), this.vert_z);
+            console.log(vert_x)
+            console.log(vert_y)
+            console.log(vert_z)
+            var voxel_geometry = this.geos[geo].clone();
 
             var size_point = this.model.get("size_point");
             voxel_geometry.scale(size_point, size_point, size_point);
             
-            if(this.vert_x.length != this.vert_y.length && this.vert_x.length != this.vert_z.length) {
+            if(vert_x.length != vert_y.length && vert_x.length != vert_z.length) {
                 console.error("Mismatched lengths for model get x, y, z");
             }
             else {
-                let vertices = new Float32Array(voxel_geometry.vertices.length * this.vert_x.length * 3);
-                let colors = new Float32Array(voxel_geometry.vertices.length * this.vert_x.length * 4);
-                let indices = new Uint32Array(voxel_geometry.faces.length * this.vert_x.length * 3);
+                var vertices = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 3);
+                var colors = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 4);
+                var indices = new Uint32Array(voxel_geometry.faces.length * vert_x.length * 3);
                 const currentColor = new THREE.Color(this.model.get("color"));
-                let faceOffset = 0;
-                let vIndex = 0;
-                let fIndex = 0;
-                let cIndex = 0;
-                for(let vert=0; vert<this.vert_x.length; vert++) {
-                    for (let v=0; v<voxel_geometry.vertices.length; v++) {
-                        vertices[vIndex++] = voxel_geometry.vertices[v].x + this.vert_x[vert];
-                        vertices[vIndex++] = voxel_geometry.vertices[v].y + this.vert_y[vert];
-                        vertices[vIndex++] = voxel_geometry.vertices[v].z + this.vert_z[vert];
+                var faceOffset = 0;
+                var vIndex = 0;
+                var fIndex = 0;
+                var cIndex = 0;
+                for(var vert=0; vert<vert_x.length; vert++) {
+                    for (var v=0; v<voxel_geometry.vertices.length; v++) {
+                        vertices[vIndex++] = voxel_geometry.vertices[v].x + vert_x[vert];
+                        //console.log(typeof(vertices[vIndex-1]) +" "+ vertices[vIndex-1]);
+                        //if(vertices[vIndex]==NaN) console.log(vertices[vIndex]);
+                        vertices[vIndex++] = voxel_geometry.vertices[v].y + vert_y[vert];
+                        //console.log(typeof(vertices[vIndex-1]) +" "+ vertices[vIndex-1]);
+                        //if(vertices[vIndex]==NaN) console.log(vertices[vIndex]);
+                        vertices[vIndex++] = voxel_geometry.vertices[v].z + vert_z[vert];
+                        //console.log(typeof(vertices[vIndex-1]) +" "+ vertices[vIndex-1]);
+                        //if(vertices[vIndex]==NaN) console.log(vertices[vIndex]);
                     }
-                    for (let col=0; col<voxel_geometry.vertices.length; col++) {
+                    for (var col=0; col<voxel_geometry.vertices.length; col++) {
                         colors[cIndex++] = currentColor.r;
                         colors[cIndex++] = currentColor.g;
                         colors[cIndex++] = currentColor.b;
                         colors[cIndex++] = 1.0;
                     }
-                    for (let i=0; i<voxel_geometry.faces.length; i++) {
+                    for (var i=0; i<voxel_geometry.faces.length; i++) {
                         indices[fIndex++] = voxel_geometry.faces[i].a + faceOffset;
                         indices[fIndex++] = voxel_geometry.faces[i].b + faceOffset;
                         indices[fIndex++] = voxel_geometry.faces[i].c + faceOffset;
@@ -485,7 +509,7 @@ class ScatterView extends widgets.WidgetView {
                 instanced_geo.addAttribute("position", new THREE.BufferAttribute(vertices, 3));
                 instanced_geo.addAttribute("color_current", new THREE.BufferAttribute(colors, 4));
                 instanced_geo.setIndex(new THREE.BufferAttribute(indices, 1));
-                instanced_geo.setDrawRange(0, indices.length-1);
+                instanced_geo.setDrawRange(0, indices.length);
             }
         }
         else {
@@ -505,9 +529,9 @@ class ScatterView extends widgets.WidgetView {
         const current  = new values.Values(scalar_names, [], this.get_current.bind(this), sequence_index, vector4_names);
         const previous = new values.Values(scalar_names, [], this.get_previous.bind(this), sequence_index_previous, vector4_names);
 
-        //Fix for Uncaught TypeError: Cannot read property 'BYTES_PER_ELEMENT' of undefined
-        current.ensure_array(["color"]);
         if(this.use_instanced) {
+            //Fix for Uncaught TypeError: Cannot read property 'BYTES_PER_ELEMENT' of undefined
+            current.ensure_array(["color"]);
             // Workaround for shader issue - Threejs already uses the name color
             instanced_geo.addAttribute("color_current", new THREE.BufferAttribute(current.array_vec4.color, 4));
         }
@@ -664,7 +688,8 @@ class ScatterModel extends widgets.WidgetModel {
             metalness : 0,
             cast_shadow : false,
             receive_shadow : false,
-            use_instanced : false
+            use_instanced : false,
+            pause_update : false
         };
     }
 }
