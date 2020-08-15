@@ -122,7 +122,13 @@ class Scatter(widgets.Widget):
         ],
         default_value=7,
     ).tag(sync=True)
-    size_marker = traitlets.CFloat(1).tag(sync=True)
+    size_marker = traitlets.Union(
+        [
+            Array(default_value=None, allow_none=True).tag(sync=True, **array_sequence_serialization),
+            traitlets.Float().tag(sync=True),
+        ],
+        default_value=1,
+    ).tag(sync=True)
     color = Array(default_value="red", allow_none=True).tag(sync=True, **color_serialization)
     color_selected = traitlets.Union(
         [Array(default_value=None, allow_none=True).tag(sync=True, **color_serialization), Unicode().tag(sync=True)],

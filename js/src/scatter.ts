@@ -485,8 +485,20 @@ class ScatterView extends widgets.WidgetView {
             var voxel_geometry = this.geos[geo].clone();
 
             var size_marker = this.model.get("size_marker");
-            voxel_geometry.scale(size_marker, size_marker, size_marker);
-            
+            var sx = 1, sy = 1, sz = 1;
+            if(typeof(size_marker) == 'number'){
+                sx=size_marker;
+                sy=size_marker;
+                sz=size_marker;
+            }
+            else if(typeof(size_marker) == 'object') {
+                size_marker=size_marker[0];
+                if(size_marker.length > 0) { sx = size_marker[0];}
+                if(size_marker.length > 1) { sy = size_marker[1];}
+                if(size_marker.length > 2) { sz = size_marker[2];}    
+            }
+            voxel_geometry.scale(sx, sy, sz);
+
             if(this.vert_x.length != this.vert_y.length && this.vert_x.length != this.vert_z.length) {
                 console.error("Mismatched lengths for model get x, y, z");
                 return;
