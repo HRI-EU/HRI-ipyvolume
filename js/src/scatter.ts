@@ -255,10 +255,14 @@ class ScatterView extends widgets.WidgetView {
         var y = this.model.get("y");
         var z = this.model.get("z");
 
+        if(typeof(x)=='number' && typeof(y)=='number' && typeof(z)=='number')
+        {
+            return;
+        }
         if(typeof(x)=='object' && typeof(y)=='object' && typeof(z)=='object' && 
             x.length == 0 && y.length == 0 && z.length==0)
         {
-            console.error("x y z are empty");
+            console.log("x y z are empty");
             return;
         }
 
@@ -468,6 +472,8 @@ class ScatterView extends widgets.WidgetView {
         this.use_instanced = this.model.get("use_instanced");
         const instanced_geo = this.use_instanced ? new THREE.InstancedBufferGeometry() : new THREE.BufferGeometry();
         console.log(typeof(this.model.get("x")));
+        console.log(typeof(this.model.get("y")));
+        console.log(typeof(this.model.get("z")));
         if(!this.use_instanced) {
 
             this.vert_x = this.create_array(this.model.get("x"), this.vert_x);//this.model.get("x")[0];//
