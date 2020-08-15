@@ -45,6 +45,7 @@ class ScatterView extends widgets.WidgetView {
     vert_x : any;
     vert_y : any;
     vert_z : any;
+    scale_factor : any;
 
     render() {
 
@@ -166,7 +167,7 @@ class ScatterView extends widgets.WidgetView {
 
         this.create_mesh();
         this.add_to_scene();
-        this.model.on("change:pause_update", this.on_change, this);
+        this.model.on("change:pause_update change:scale_factor", this.on_change, this);
         this.model.on("change:size change:size_selected change:size_marker change:color change:color_selected change:sequence_index change:x change:y change:z change:selected change:vx change:vy change:vz",
             this.on_change, this);
         this.model.on("change:geo change:connected", this.update_, this);
@@ -245,7 +246,6 @@ class ScatterView extends widgets.WidgetView {
         }
     }
     on_change() {
-
         if(this.model.get("pause_update")) {
             console.log("pause_update (on_change)");
             return;
@@ -267,7 +267,7 @@ class ScatterView extends widgets.WidgetView {
         }
 
         for (const key of Object.keys(this.model.changedAttributes())) {
-            if(key=="pause_update") continue;
+            if(key=="pause_update" || key=="scale_factor") continue;
             this.previous_values[key] = this.model.previous(key);
             // attributes_changed keys will say what needs to be animated, it's values are the properties in
             // this.previous_values that need to be removed when the animation is done
@@ -476,6 +476,7 @@ class ScatterView extends widgets.WidgetView {
         console.log(typeof(this.model.get("z")));
         if(!this.use_instanced) {
 
+            this.scale_factor = this.model.get("scale_factor");
             this.vert_x = this.create_array(this.model.get("x"), this.vert_x);//this.model.get("x")[0];//
             this.vert_y = this.create_array(this.model.get("y"), this.vert_y);//this.model.get("y")[0];//
             this.vert_z = this.create_array(this.model.get("z"), this.vert_z);//this.model.get("z")[0];//
@@ -514,15 +515,9 @@ class ScatterView extends widgets.WidgetView {
                 var cIndex = 0;
                 for(var vert=0; vert<this.vert_x.length; vert++) {
                     for (var v=0; v<voxel_geometry.vertices.length; v++) {
-                        vertices[vIndex++] = voxel_geometry.vertices[v].x + this.vert_x[vert];
-                        //console.log(typeof(vertices[vIndex-1]) +" "+ vertices[vIndex-1]);
-                        //if(vertices[vIndex]==NaN) console.log(vertices[vIndex]);
-                        vertices[vIndex++] = voxel_geometry.vertices[v].y + this.vert_y[vert];
-                        //console.log(typeof(vertices[vIndex-1]) +" "+ vertices[vIndex-1]);
-                        //if(vertices[vIndex]==NaN) console.log(vertices[vIndex]);
-                        vertices[vIndex++] = voxel_geometry.vertices[v].z + this.vert_z[vert];
-                        //console.log(typeof(vertices[vIndex-1]) +" "+ vertices[vIndex-1]);
-                        //if(vertices[vIndex]==NaN) console.log(vertices[vIndex]);
+                        vertices[vIndex++] = voxel_geometry.vertices[v].x + this.scale_factor * this.vert_x[vert];
+                        vertices[vIndex++] = voxel_geometry.vertices[v].y + this.scale_factor * this.vert_y[vert];
+                        vertices[vIndex++] = voxel_geometry.vertices[v].z + this.scale_factor * this.vert_z[vert];
                     }
                     for (var col=0; col<voxel_geometry.vertices.length; col++) {
                         colors[cIndex++] = currentColor.r;
@@ -720,7 +715,8 @@ class ScatterModel extends widgets.WidgetModel {
             cast_shadow : false,
             receive_shadow : false,
             use_instanced : false,
-            pause_update : false
+            pause_update : false,
+            scale_factor : 1
         };
     }
 }

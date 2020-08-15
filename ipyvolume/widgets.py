@@ -148,6 +148,7 @@ class Scatter(widgets.Widget):
     cast_shadow = traitlets.CBool(default_value=False).tag(sync=True)
     receive_shadow = traitlets.CBool(default_value=False).tag(sync=True)
     pause_update = traitlets.CBool(default_value=False).tag(sync=True)
+    scale_factor = traitlets.CFloat(1).tag(sync=True)
 
     texture = traitlets.Union(
         [
@@ -200,7 +201,7 @@ class observed_array(np.ndarray):
 class Voxel(Scatter):
     def vox_cb(self, obj, *args, **kwargs):
         print("Voxel Callback Compute x,y,z")
-        coords = Voxel.d_to_xyz(obj.d, offset=[0,0,0], hollow=True, threshold=0.5, center=False)   
+        coords = Voxel.d_to_xyz(obj.d, center=True)
         print(coords[:,0])
         print(coords[:,1])
         print(coords[:,2])
@@ -227,36 +228,13 @@ class Voxel(Scatter):
         self.d_param.set_callback(self, self.vox_cb)
 
     @staticmethod
-    def d_to_xyz(d, offset=[0,0,0], hollow=True, threshold=0.5, center=True):
-        #print(d)
+    def d_to_xyz(d, center=True):
         boxes = None
-        # if hollow == True:
-        #     # cut material below threshold
-        #     v_material = d
-        #     v_material[d<threshold] = 0
-        #     v_material[d>=threshold] = 1 
-
-        #     # remove voxels surounded by material on all sides
-        #     v_hollow = np.copy(v_material)  
-
-        #     # "hollowing model"
-        #     v_temp = ndimage.minimum_filter(v_material, size=3)
-        #     # TODO handle non 0 or 1 values
-        #     v_hollow = v_material-v_temp
-    
-        #     #printprint(f"Material Voxels:{np.sum(v_material)}")
-        #     #print(f"Hollow Voxels:{np.sum(v_hollow)}")
-    
-        #     boxes = np.array(np.nonzero(v_hollow)).transpose()
-        #     boxes = boxes.astype(np.float)
-        # else:
         boxes = np.array(np.nonzero(d)).transpose()
         boxes = boxes.astype(np.float)
 
         # set model into origin
-        #print(boxes.shape)
-        #print(boxes)
-        if boxes.size > 0:
+        if center and boxes.size > 0:
             for i in range(3): 
                 boxes[:,i] = boxes[:,i] - boxes[:,i].min()
                 boxes[:,i] = boxes[:,i] - boxes[:,i].max()/2

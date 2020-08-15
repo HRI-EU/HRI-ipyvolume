@@ -698,6 +698,7 @@ def plot_voxel(
     emissive_intensity=emissive_intensity_default,
     roughness=0,
     metalness=0,
+    scale_factor=1,
     **kwargs
 ):
     fig = gcf()
@@ -712,6 +713,7 @@ def plot_voxel(
         color_selected=color_selected,
         size_selected=size_selected,
         size_marker=size_marker,
+        scale_factor=scale_factor,
         geo=marker,
         selection=selection,
         use_instanced=False,
