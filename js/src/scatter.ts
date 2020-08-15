@@ -4,6 +4,7 @@ import * as THREE from "three";
 import * as serialize from "./serialize.js";
 import { semver_range } from "./utils";
 import * as values from "./values.js";
+import { object } from "underscore";
 // tslint:disable-next-line: no-var-requires
 const cat_data = require("../data/cat.json");
 
@@ -166,7 +167,7 @@ class ScatterView extends widgets.WidgetView {
         this.create_mesh();
         this.add_to_scene();
         this.model.on("change:pause_update", this.on_change, this);
-        this.model.on("change:size change:size_selected change:size_point change:color change:color_selected change:sequence_index change:x change:y change:z change:selected change:vx change:vy change:vz",
+        this.model.on("change:size change:size_selected change:size_marker change:color change:color_selected change:sequence_index change:x change:y change:z change:selected change:vx change:vy change:vz",
             this.on_change, this);
         this.model.on("change:geo change:connected", this.update_, this);
         this.model.on("change:texture", this._load_textures, this);
@@ -250,6 +251,17 @@ class ScatterView extends widgets.WidgetView {
             return;
         }
         console.log(this.model.changedAttributes());
+        var x = this.model.get("x");
+        var y = this.model.get("y");
+        var z = this.model.get("z");
+
+        if(typeof(x)=='object' && typeof(y)=='object' && typeof(z)=='object' && 
+            x.length == 0 && y.length == 0 && z.length==0)
+        {
+            console.error("x y z are empty");
+            return;
+        }
+
         for (const key of Object.keys(this.model.changedAttributes())) {
             if(key=="pause_update") continue;
             this.previous_values[key] = this.model.previous(key);
@@ -458,38 +470,39 @@ class ScatterView extends widgets.WidgetView {
         console.log(typeof(this.model.get("x")));
         if(!this.use_instanced) {
 
-            var vert_x = this.create_array(this.model.get("x"), this.vert_x);//this.model.get("x")[0];//
-            var vert_y = this.create_array(this.model.get("y"), this.vert_y);//this.model.get("y")[0];//
-            var vert_z = this.create_array(this.model.get("z"), this.vert_z);//this.model.get("z")[0];//
-            console.log(vert_x)
-            console.log(vert_y)
-            console.log(vert_z)
+            this.vert_x = this.create_array(this.model.get("x"), this.vert_x);//this.model.get("x")[0];//
+            this.vert_y = this.create_array(this.model.get("y"), this.vert_y);//this.model.get("y")[0];//
+            this.vert_z = this.create_array(this.model.get("z"), this.vert_z);//this.model.get("z")[0];//
+            console.log(this.vert_x)
+            console.log(this.vert_y)
+            console.log(this.vert_z)
             var voxel_geometry = this.geos[geo].clone();
 
-            var size_point = this.model.get("size_point");
-            voxel_geometry.scale(size_point, size_point, size_point);
+            var size_marker = this.model.get("size_marker");
+            voxel_geometry.scale(size_marker, size_marker, size_marker);
             
-            if(vert_x.length != vert_y.length && vert_x.length != vert_z.length) {
+            if(this.vert_x.length != this.vert_y.length && this.vert_x.length != this.vert_z.length) {
                 console.error("Mismatched lengths for model get x, y, z");
+                return;
             }
             else {
-                var vertices = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 3);
-                var colors = new Float32Array(voxel_geometry.vertices.length * vert_x.length * 4);
-                var indices = new Uint32Array(voxel_geometry.faces.length * vert_x.length * 3);
+                var vertices = new Float32Array(voxel_geometry.vertices.length * this.vert_x.length * 3);
+                var colors = new Float32Array(voxel_geometry.vertices.length * this.vert_x.length * 4);
+                var indices = new Uint32Array(voxel_geometry.faces.length * this.vert_x.length * 3);
                 const currentColor = new THREE.Color(this.model.get("color"));
                 var faceOffset = 0;
                 var vIndex = 0;
                 var fIndex = 0;
                 var cIndex = 0;
-                for(var vert=0; vert<vert_x.length; vert++) {
+                for(var vert=0; vert<this.vert_x.length; vert++) {
                     for (var v=0; v<voxel_geometry.vertices.length; v++) {
-                        vertices[vIndex++] = voxel_geometry.vertices[v].x + vert_x[vert];
+                        vertices[vIndex++] = voxel_geometry.vertices[v].x + this.vert_x[vert];
                         //console.log(typeof(vertices[vIndex-1]) +" "+ vertices[vIndex-1]);
                         //if(vertices[vIndex]==NaN) console.log(vertices[vIndex]);
-                        vertices[vIndex++] = voxel_geometry.vertices[v].y + vert_y[vert];
+                        vertices[vIndex++] = voxel_geometry.vertices[v].y + this.vert_y[vert];
                         //console.log(typeof(vertices[vIndex-1]) +" "+ vertices[vIndex-1]);
                         //if(vertices[vIndex]==NaN) console.log(vertices[vIndex]);
-                        vertices[vIndex++] = voxel_geometry.vertices[v].z + vert_z[vert];
+                        vertices[vIndex++] = voxel_geometry.vertices[v].z + this.vert_z[vert];
                         //console.log(typeof(vertices[vIndex-1]) +" "+ vertices[vIndex-1]);
                         //if(vertices[vIndex]==NaN) console.log(vertices[vIndex]);
                     }
@@ -611,7 +624,7 @@ class ScatterView extends widgets.WidgetView {
         }
 
         for (const key of Object.keys(this.attributes_changed)) {
-            if(key == "size_point") {
+            if(key == "size_marker") {
                 continue;
             }
             const changed_properties = this.attributes_changed[key];
@@ -645,7 +658,7 @@ class ScatterModel extends widgets.WidgetModel {
         selected: serialize.array_or_json,
         size: serialize.array_or_json,
         size_selected: serialize.array_or_json,
-        size_point: serialize.array_or_json,
+        size_marker: serialize.array_or_json,
         color: serialize.color_or_json,
         color_selected: serialize.color_or_json,
         texture: serialize.texture,
@@ -670,7 +683,7 @@ class ScatterModel extends widgets.WidgetModel {
              _view_module_version: semver_range,
             size: 5,
             size_selected: 7,
-            size_point: 1,
+            size_marker: 1,
             color: "red",
             color_selected: "white",
             geo: "diamond",
