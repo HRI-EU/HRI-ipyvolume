@@ -693,12 +693,13 @@ def plot_voxel(
     marker="box",
     selection=None,
     grow_limits=True,
+    scale_factor=1,
+    offset=[0,0,0],
     lighting_model='DEFAULT',
     opacity=1,
     emissive_intensity=emissive_intensity_default,
     roughness=0,
     metalness=0,
-    scale_factor=1,
     **kwargs
 ):
     fig = gcf()
@@ -716,6 +717,9 @@ def plot_voxel(
         scale_factor=scale_factor,
         geo=marker,
         selection=selection,
+        pos_offset_x=offset[0],
+        pos_offset_y=offset[1],
+        pos_offset_z=offset[2],
         use_instanced=False,
         lighting_model=lighting_model,
         opacity=opacity,

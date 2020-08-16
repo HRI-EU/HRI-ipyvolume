@@ -46,6 +46,9 @@ class ScatterView extends widgets.WidgetView {
     vert_y : any;
     vert_z : any;
     scale_factor : any;
+    pos_offset_x : any;
+    pos_offset_y : any;
+    pos_offset_z : any;
 
     render() {
 
@@ -167,7 +170,7 @@ class ScatterView extends widgets.WidgetView {
 
         this.create_mesh();
         this.add_to_scene();
-        this.model.on("change:pause_update change:scale_factor", this.on_change, this);
+        this.model.on("change:pause_update change:scale_factor change:pos_offset_x change:pos_offset_y change:pos_offset_z", this.on_change, this);
         this.model.on("change:size change:size_selected change:size_marker change:color change:color_selected change:sequence_index change:x change:y change:z change:selected change:vx change:vy change:vz",
             this.on_change, this);
         this.model.on("change:geo change:connected", this.update_, this);
@@ -267,7 +270,7 @@ class ScatterView extends widgets.WidgetView {
         }
 
         for (const key of Object.keys(this.model.changedAttributes())) {
-            if(key=="pause_update" || key=="scale_factor") continue;
+            if(key=="pause_update" || key=="scale_factor" || key=="pos_offset_x" || key=="pos_offset_y" || key=="pos_offset_z") continue;
             this.previous_values[key] = this.model.previous(key);
             // attributes_changed keys will say what needs to be animated, it's values are the properties in
             // this.previous_values that need to be removed when the animation is done
@@ -477,9 +480,9 @@ class ScatterView extends widgets.WidgetView {
         if(!this.use_instanced) {
 
             this.scale_factor = this.model.get("scale_factor");
-            this.vert_x = this.create_array(this.model.get("x"), this.vert_x);//this.model.get("x")[0];//
-            this.vert_y = this.create_array(this.model.get("y"), this.vert_y);//this.model.get("y")[0];//
-            this.vert_z = this.create_array(this.model.get("z"), this.vert_z);//this.model.get("z")[0];//
+            this.vert_x = this.create_array(this.model.get("x"), this.vert_x);
+            this.vert_y = this.create_array(this.model.get("y"), this.vert_y);
+            this.vert_z = this.create_array(this.model.get("z"), this.vert_z);
             console.log(this.vert_x)
             console.log(this.vert_y)
             console.log(this.vert_z)
@@ -505,6 +508,10 @@ class ScatterView extends widgets.WidgetView {
                 return;
             }
             else {
+                this.pos_offset_x = this.model.get("pos_offset_x");
+                this.pos_offset_y = this.model.get("pos_offset_y");
+                this.pos_offset_z = this.model.get("pos_offset_z");
+
                 var vertices = new Float32Array(voxel_geometry.vertices.length * this.vert_x.length * 3);
                 var colors = new Float32Array(voxel_geometry.vertices.length * this.vert_x.length * 4);
                 var indices = new Uint32Array(voxel_geometry.faces.length * this.vert_x.length * 3);
@@ -515,9 +522,9 @@ class ScatterView extends widgets.WidgetView {
                 var cIndex = 0;
                 for(var vert=0; vert<this.vert_x.length; vert++) {
                     for (var v=0; v<voxel_geometry.vertices.length; v++) {
-                        vertices[vIndex++] = voxel_geometry.vertices[v].x + this.scale_factor * this.vert_x[vert];
-                        vertices[vIndex++] = voxel_geometry.vertices[v].y + this.scale_factor * this.vert_y[vert];
-                        vertices[vIndex++] = voxel_geometry.vertices[v].z + this.scale_factor * this.vert_z[vert];
+                        vertices[vIndex++] = this.pos_offset_x + voxel_geometry.vertices[v].x + this.scale_factor * this.vert_x[vert];
+                        vertices[vIndex++] = this.pos_offset_y + voxel_geometry.vertices[v].y + this.scale_factor * this.vert_y[vert];
+                        vertices[vIndex++] = this.pos_offset_z + voxel_geometry.vertices[v].z + this.scale_factor * this.vert_z[vert];
                     }
                     for (var col=0; col<voxel_geometry.vertices.length; col++) {
                         colors[cIndex++] = currentColor.r;
@@ -716,7 +723,10 @@ class ScatterModel extends widgets.WidgetModel {
             receive_shadow : false,
             use_instanced : false,
             pause_update : false,
-            scale_factor : 1
+            scale_factor : 1,
+            pos_offset_x : 0,
+            pos_offset_y : 0,
+            pos_offset_z : 0
         };
     }
 }
