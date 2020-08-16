@@ -369,7 +369,7 @@ def plot_trisurf(
     :param u: {u}
     :param v: {v}
     :param texture: {texture}
-    :param lighting_model: The lighting model used to calculate the final color of the mesh. Can be 'DEFAULT', 'LAMBERT', 'PHONG', 'PHYSICAL'. implicit 'DEFAULT'. Will be automatically updated to 'PHYSICAL' if a light is added to figure
+    :param lighting_model: The lighting model used to calculate the final color of the mesh. Can be 'DEFAULT', 'PHONG', 'PHYSICAL'. implicit 'DEFAULT'. Will be automatically updated to 'PHYSICAL' if a light is added to figure
     :param opacity: (Non-Default) 0 - Mesh is fully transparent; 1 - Mesh is fully opaque
     :param emissive_intensity: (Non-Default) Factor multiplied with color. Takes values between 0 and 1. Default is 0.2
     :param specular_color: {color} (Phong Only) Color of the specular tint. Default 'white'.
@@ -439,7 +439,7 @@ def plot_surface(
     :param color: {color2d} Color of the material, essentially a solid color unaffected by other lighting. Default is 'red'
     :param bool wrapx: when True, the x direction is assumed to wrap, and polygons are drawn between the end end begin points
     :param bool wrapy: simular for the y coordinate
-    :param lighting_model: The lighting model used to calculate the final color of the mesh. Can be 'DEFAULT', 'LAMBERT', 'PHONG', 'PHYSICAL'. implicit 'DEFAULT'. Will be automatically updated to 'PHYSICAL' if a light is added to figure
+    :param lighting_model: The lighting model used to calculate the final color of the mesh. Can be 'DEFAULT', 'PHONG', 'PHYSICAL'. implicit 'DEFAULT'. Will be automatically updated to 'PHYSICAL' if a light is added to figure
     :param opacity: (Non-Default) 0 - Mesh is fully transparent; 1 - Mesh is fully opaque
     :param emissive_intensity: (Non-Default) Factor multiplied with color. Takes values between 0 and 1. Default is 0.2
     :param specular_color: {color} (Phong Only) Color of the specular tint. Default 'white'.
@@ -524,7 +524,7 @@ def plot_mesh(
     :param u: {u}
     :param v: {v}
     :param texture: {texture}
-    :param lighting_model: The lighting model used to calculate the final color of the mesh. Can be 'DEFAULT', 'LAMBERT', 'PHONG', 'PHYSICAL'. implicit 'DEFAULT'. Will be automatically updated to 'PHYSICAL' if a light is added to figure
+    :param lighting_model: The lighting model used to calculate the final color of the mesh. Can be 'DEFAULT', 'PHONG', 'PHYSICAL'. implicit 'DEFAULT'. Will be automatically updated to 'PHYSICAL' if a light is added to figure
     :param opacity: (Non-Default) 0 - Mesh is fully transparent; 1 - Mesh is fully opaque
     :param emissive_intensity: (Non-Default) Factor multiplied with color. Takes values between 0 and 1. Default is 0.2
     :param specular_color: {color} (Phong Only) Color of the specular tint. Default 'white'.
@@ -2030,7 +2030,7 @@ def setup_material_widgets(mesh=None, tab=None, index=0):
     
     surf_color = ipywidgets.ColorPicker(description='Color:', value=str(mesh.color), continuous_update=True, style=style, layout=layout)
     mlm = 'PHYSICAL' if len(gcf().lights) > 0 and mesh.lighting_model=='DEFAULT' else mesh.lighting_model
-    surf_lighting_model = ipywidgets.Dropdown(options=['DEFAULT','LAMBERT','PHONG','PHYSICAL'],value=mlm, description='Lighting Model:',style=style, layout=layout)
+    surf_lighting_model = ipywidgets.Dropdown(options=['DEFAULT','PHONG','PHYSICAL'],value=mlm, description='Lighting Model:',style=style, layout=layout)
     surf_opacity = ipywidgets.FloatSlider(description='Opacity (Non-Default):',value=mesh.opacity, min=0.0, max=1.0, step=0.01, continuous_update=True, orientation='horizontal', readout=True, style=style, layout=layout)
     surf_emissive_intensity = ipywidgets.FloatSlider(description='Emissive Intensity (Non-Default):',value=mesh.emissive_intensity, min=0.0, max=1.0, step=0.01, continuous_update=True, orientation='horizontal', readout=True, style=style, layout=layout)
     surf_specular_color = ipywidgets.ColorPicker(description='Specular Color (Phong):',value=str(mesh.specular_color), continuous_update=True, style=style, layout=layout)

@@ -48,7 +48,7 @@ class MeshView extends widgets.WidgetView {
 
         this.LIGHTING_MODELS = {
             DEFAULT: 'DEFAULT',
-            LAMBERT: 'LAMBERT',
+            //LAMBERT: 'LAMBERT',
             PHONG: 'PHONG',
             PHYSICAL : 'PHYSICAL'
         };
@@ -356,9 +356,9 @@ class MeshView extends widgets.WidgetView {
             if(this.lighting_model === this.LIGHTING_MODELS.DEFAULT) {
                 material.defines.DEFAULT_SHADING = true;
             }
-            else if(this.lighting_model === this.LIGHTING_MODELS.LAMBERT) {
-                material.defines.LAMBERT_SHADING = true;
-            }
+            // else if(this.lighting_model === this.LIGHTING_MODELS.LAMBERT) {
+            //     material.defines.LAMBERT_SHADING = true;
+            // }
             else if(this.lighting_model === this.LIGHTING_MODELS.PHONG) {
                 material.defines.PHONG_SHADING = true;
             }

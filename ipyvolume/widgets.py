@@ -66,7 +66,7 @@ class Mesh(widgets.Widget):
     color = Array(default_value="red", allow_none=True).tag(sync=True, **color_serialization)
     visible = traitlets.CBool(default_value=True).tag(sync=True)
 
-    lighting_model = traitlets.Enum(values=['DEFAULT', 'LAMBERT', 'PHONG', 'PHYSICAL'], default_value='DEFAULT').tag(sync=True)
+    lighting_model = traitlets.Enum(values=['DEFAULT', 'PHONG', 'PHYSICAL'], default_value='DEFAULT').tag(sync=True)
     opacity = traitlets.CFloat(1).tag(sync=True)
     emissive_intensity = traitlets.CFloat(1).tag(sync=True)
     specular_color = Array(default_value="white", allow_none=True).tag(sync=True, **color_serialization)
