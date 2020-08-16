@@ -129,6 +129,7 @@ class Scatter(widgets.Widget):
         ],
         default_value=1,
     ).tag(sync=True)
+    voxel_data = Array(default_value=None, allow_none=True).tag(sync=True, **array_sequence_serialization)
     color = Array(default_value="red", allow_none=True).tag(sync=True, **color_serialization)
     color_selected = traitlets.Union(
         [Array(default_value=None, allow_none=True).tag(sync=True, **color_serialization), Unicode().tag(sync=True)],
@@ -245,17 +246,19 @@ class Voxel(Scatter):
     def vox_cb(self, obj, *args, **kwargs):
         print("Voxel Callback Compute x,y,z")
         coords = Voxel.d_to_xyz(obj.d, center=True)
-        print(coords[:,0])
-        print(coords[:,1])
-        print(coords[:,2])
+        # print(coords[:,0])
+        # print(coords[:,1])
+        # print(coords[:,2])
         obj.pause_update = True
+        obj.voxel_data = obj.d.ravel().tolist()
+        print(obj.voxel_data)
         obj.x=coords[:,0].tolist()
         obj.y=coords[:,1].tolist()
         obj.z=coords[:,2].tolist()
-        print("-------------------------")
-        print(obj.x)
-        print(obj.y)
-        print(obj.z)
+        # print("-------------------------")
+        # print(obj.x)
+        # print(obj.y)
+        # print(obj.z)
         obj.pause_update = False
         print("Finished x y z update") 
     

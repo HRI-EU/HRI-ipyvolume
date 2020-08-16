@@ -270,7 +270,7 @@ class ScatterView extends widgets.WidgetView {
         }
 
         for (const key of Object.keys(this.model.changedAttributes())) {
-            if(key=="pause_update" || key=="scale_factor" || key=="pos_offset_x" || key=="pos_offset_y" || key=="pos_offset_z") continue;
+            if(key=="pause_update" || key=="scale_factor" || key=="pos_offset_x" || key=="pos_offset_y" || key=="pos_offset_z" || key=="voxel_data") continue;
             this.previous_values[key] = this.model.previous(key);
             // attributes_changed keys will say what needs to be animated, it's values are the properties in
             // this.previous_values that need to be removed when the animation is done
@@ -495,7 +495,7 @@ class ScatterView extends widgets.WidgetView {
                 sy=size_marker;
                 sz=size_marker;
             }
-            else if(typeof(size_marker) == 'object') {
+            else if(typeof(size_marker) == 'object' && size_marker != null) {
                 size_marker=size_marker[0];
                 if(size_marker.length > 0) { sx = size_marker[0];}
                 if(size_marker.length > 1) { sy = size_marker[1];}
@@ -520,11 +520,22 @@ class ScatterView extends widgets.WidgetView {
                 var vIndex = 0;
                 var fIndex = 0;
                 var cIndex = 0;
+                var data = this.model.get("voxel_data");
+                if(size_marker == null && data!= null && data[0] != null && this.vert_x.length != data[0].length) {
+                    console.warn("Mismatched voxel and vertex data lengths");
+                }
+
                 for(var vert=0; vert<this.vert_x.length; vert++) {
+                    
+                    if(size_marker == null && data != null && data[0] != null && this.vert_x.length == data[0].length) {
+                        var currentScale = data[0][vert];
+                        voxel_geometry = this.geos[geo].clone();
+                        voxel_geometry.scale(currentScale,currentScale,currentScale);
+                    }
                     for (var v=0; v<voxel_geometry.vertices.length; v++) {
-                        vertices[vIndex++] = this.pos_offset_x + voxel_geometry.vertices[v].x + this.scale_factor * this.vert_x[vert];
-                        vertices[vIndex++] = this.pos_offset_y + voxel_geometry.vertices[v].y + this.scale_factor * this.vert_y[vert];
-                        vertices[vIndex++] = this.pos_offset_z + voxel_geometry.vertices[v].z + this.scale_factor * this.vert_z[vert];
+                        vertices[vIndex++] = (this.pos_offset_x + voxel_geometry.vertices[v].x + this.scale_factor * this.vert_x[vert]).toFixed(3);
+                        vertices[vIndex++] = (this.pos_offset_y + voxel_geometry.vertices[v].y + this.scale_factor * this.vert_y[vert]).toFixed(3);
+                        vertices[vIndex++] = (this.pos_offset_z + voxel_geometry.vertices[v].z + this.scale_factor * this.vert_z[vert]).toFixed(3);
                     }
                     for (var col=0; col<voxel_geometry.vertices.length; col++) {
                         colors[cIndex++] = currentColor.r;
@@ -691,6 +702,7 @@ class ScatterModel extends widgets.WidgetModel {
         emissive_intensity : serialize.array_or_json,
         roughness : serialize.array_or_json,
         metalness : serialize.array_or_json,
+        voxel_data : serialize.array_or_json,
     };
 
     defaults() {

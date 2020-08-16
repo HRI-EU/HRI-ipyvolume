@@ -682,6 +682,7 @@ def plot_mesh(
 
 #@_docsubst
 def plot_voxel(
+    d,
     x,
     y,
     z,
@@ -721,6 +722,7 @@ def plot_voxel(
         pos_offset_y=offset[1],
         pos_offset_z=offset[2],
         use_instanced=False,
+        voxel_data=d.ravel().tolist(),
         lighting_model=lighting_model,
         opacity=opacity,
         emissive_intensity=emissive_intensity,
