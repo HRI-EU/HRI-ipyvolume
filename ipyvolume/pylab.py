@@ -621,118 +621,54 @@ def plot_mesh(
     fig.meshes = fig.meshes + [mesh]
     return mesh
 
-# def plot_voxel(
-#     d,
-#     pos_offset=[0,0,0],
-#     voxel_scale=1,
-#     marker="box",
-#     hollow=True,
-#     hollow_threshold=0.5,
-#     grow_limits=True,
-#     color=default_color,
-#     opacity=1.0,
-#     lighting_model='DEFAULT',
-#     emissive_intensity=emissive_intensity_default,
-#     roughness=0,
-#     metalness=0,
-#     **kwargs
-# ):
-#     coords = ipv.Voxel.d_to_xyz(d=d, 
-#                 offset=pos_offset, 
-#                 hollow=hollow, 
-#                 threshold=hollow_threshold)
-#     x=coords[:,0] 
-#     y=coords[:,1]
-#     z=coords[:,2] 
-#     dd = np.copy(d)
-#     fig = gcf()
-    
-#     s = ipv.Voxel(#d=d,
-#         x=x,
-#         y=y,
-#         z=z,
-#         color=color,
-#         color_selected=color,
-#         size=1,
-#         size_selected=default_size_selected,
-#         size_marker=voxel_scale,
-#         geo=marker,
-#         selection=None,
-#         use_instanced=False,
-#         lighting_model=lighting_model,
-#         opacity=opacity,
-#         emissive_intensity=emissive_intensity,
-#         roughness=roughness,
-#         metalness=metalness,
-#         **kwargs
-#     )
-#     if grow_limits:
-#         _grow_limits(s.x, s.y, s.z)
-
-#     #s.d = dd
-#     s.d_param = ipv.observed_array(d.shape)
-#     s.d_param.set_callback(s, s.vox_cb)
-#     s.d_param.values = dd
-    
-#     print(s.d_param)
-#     print(type(s.d_param))
-#     print(s.d_param.shape)
-#     fig.scatters = fig.scatters + [s]
-#     return s
-
-#@_docsubst
 def plot_voxel(
     d,
-    x,
-    y,
-    z,
-    color=default_color,
-    size=default_size,
-    size_selected=default_size_selected,
-    size_marker=1,
-    color_selected=default_color_selected,
-    marker="box",
-    selection=None,
-    grow_limits=True,
-    scale_factor=1,
     offset=[0,0,0],
+    size=1,
+    scale_factor=1,
+    size_marker=1,
+    marker="box",
+    grow_limits=True,
+    center=True,
+    color=default_color,
+    opacity=1.0,
     lighting_model='DEFAULT',
-    opacity=1,
     emissive_intensity=emissive_intensity_default,
     roughness=0,
     metalness=0,
     **kwargs
 ):
-    fig = gcf()
-    if grow_limits:
-        _grow_limits(x, y, z)
-    s = ipv.Voxel(
+    coords = ipv.Voxel.d_to_xyz(d=d, center=center)
+    x=coords[:,0] 
+    y=coords[:,1]
+    z=coords[:,2] 
+
+    p = ipv.plot_pointcloud(
         x=x,
         y=y,
         z=z,
         color=color,
         size=size,
-        color_selected=color_selected,
-        size_selected=size_selected,
+        color_selected=color,
+        size_selected=1,
         size_marker=size_marker,
         scale_factor=scale_factor,
-        geo=marker,
-        selection=selection,
+        marker=marker,
+        selection=None,
+        grow_limits=grow_limits,
         pos_offset_x=offset[0],
         pos_offset_y=offset[1],
         pos_offset_z=offset[2],
-        use_instanced=False,
         voxel_data=d.ravel().tolist(),
         lighting_model=lighting_model,
         opacity=opacity,
         emissive_intensity=emissive_intensity,
         roughness=roughness,
         metalness=metalness,
-        **kwargs
     )
+    p.d = d
 
-    fig.scatters = fig.scatters + [s]
-    return s
+    return p
 
 #@_docsubst
 def plot_pointcloud(
@@ -742,8 +678,10 @@ def plot_pointcloud(
     color=default_color,
     size=default_size,
     size_selected=default_size_selected,
+    scale_factor=1,
     size_marker=1,
     color_selected=default_color_selected,
+    voxel_data=None,
     marker="box",
     selection=None,
     grow_limits=True,
@@ -773,12 +711,12 @@ def plot_pointcloud(
     :param roughness: (Physical Only) How rough the material appears. 0.0 means a smooth mirror reflection, 1.0 means fully diffuse. Default is 1
     :param metalness: (Physical Only) How much the material is like a metal. Non-metallic materials such as wood or stone use 0.0, metallic use 1.0, with nothing (usually) in between
     :param kwargs:
-    :return: :any:`Scatter`
+    :return: :any:`Voxel`
     """
     fig = gcf()
     if grow_limits:
         _grow_limits(x, y, z)
-    s = ipv.Scatter(
+    s = ipv.Voxel(
         x=x,
         y=y,
         z=z,
@@ -786,7 +724,9 @@ def plot_pointcloud(
         size=size,
         color_selected=color_selected,
         size_selected=size_selected,
+        scale_factor=scale_factor,
         size_marker=size_marker,
+        voxel_data=voxel_data,
         geo=marker,
         selection=selection,
         use_instanced=False,

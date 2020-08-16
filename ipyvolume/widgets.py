@@ -224,7 +224,6 @@ class observed_array(np.ndarray):
     callback_obj=None
     callback_func=None
     def __new__(cls, *args, **kwargs):
-        print('In __new__ with class %s' % cls)
         return super(observed_array, cls).__new__(cls, *args, **kwargs)
     def set_callback(self, cb_obj, cb_fcn):
         self.callback_obj = cb_obj    
@@ -232,11 +231,10 @@ class observed_array(np.ndarray):
     def __getitem__(self, key):
         retval = super(observed_array, self).__getitem__(key)
         if self.callback_func and self.callback_obj and (isinstance(key, int) or (isinstance(key, tuple) and not isinstance(key[0], int))): # or (isinstance(key, tuple) and key[0] == -1 and key[1] == -1 and key[2] == -1)
-            print("{} {}".format(key, type(key)))
+            #print("{} {}".format(key, type(key)))
             self.callback_func(self.callback_obj)
         return retval
     def __setitem__(self,key,value):
-        print("SET")
         retval = super(observed_array, self).__setitem__(key, value)
         self.callback_func(self.callback_obj)
         return retval
@@ -244,14 +242,16 @@ class observed_array(np.ndarray):
 @widgets.register
 class Voxel(Scatter):
     def vox_cb(self, obj, *args, **kwargs):
-        print("Voxel Callback Compute x,y,z")
+        #print("Voxel Callback Compute x,y,z")
         coords = Voxel.d_to_xyz(obj.d, center=True)
         # print(coords[:,0])
         # print(coords[:,1])
         # print(coords[:,2])
         obj.pause_update = True
-        obj.voxel_data = obj.d.ravel().tolist()
-        print(obj.voxel_data)
+        # nl = obj.d.ravel().tolist()
+        # obj.voxel_data = list(filter((0).__ne__, nl))
+        obj.voxel_data = list(filter(lambda a: a !=0, obj.d.ravel().tolist()))
+        #print(obj.voxel_data)
         obj.x=coords[:,0].tolist()
         obj.y=coords[:,1].tolist()
         obj.z=coords[:,2].tolist()
@@ -259,8 +259,10 @@ class Voxel(Scatter):
         # print(obj.x)
         # print(obj.y)
         # print(obj.z)
+        #print(obj.d)
+        #print(obj.voxel_data)
         obj.pause_update = False
-        print("Finished x y z update") 
+        #print("Finished x y z update") 
     
     d_param = observed_array([1,1,1])
 
