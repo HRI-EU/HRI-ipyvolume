@@ -172,46 +172,6 @@ class Scatter(widgets.Widget):
     def _default_material(self):
         return pythreejs.ShaderMaterial()
 
-    def isAxis(self, axis="x"):
-        if axis != "x" and axis != "y" and axis != "z":
-            print("axis not x y z")
-            return False
-        return True
-
-    def get_xyz(self, axis="x"):
-        if self.isAxis(axis=axis) == False:
-            return None
-        if axis == "x":
-            return self.x
-        elif axis == "y":
-            return self.y
-        elif axis == "z":
-            return self.z
-
-    def set_xyz(self, axis="x", value=None):
-        if self.isAxis(axis=axis) == False:
-            return
-        if axis == "x":
-            self.x = value
-        elif axis == "y":
-            self.y = value
-        elif axis == "z":
-            self.z = value
-                
-    def set_xyz_index(self, axis="x", value=0, index=0):
-        if self.isAxis(axis=axis) == False:
-            return
-        temp = self.get_xyz(axis=axis).copy()
-        temp[index]=value
-        self.set_xyz(axis=axis, value=temp)
-
-    def set_xyz_step(self, axis="x", value=0, start=0, end=1, step=1):
-        if self.isAxis(axis=axis) == False:
-            return
-        temp = self.get_xyz(axis=axis).copy()
-        temp[start:end:step]=value
-        self.set_xyz(axis=axis, value=temp)
-
     line_material = traitlets.Instance(
         pythreejs.ShaderMaterial, help='A :any:`pythreejs.ShaderMaterial` that is used for the lines/wireframe'
     ).tag(sync=True, **widgets.widget_serialization)
