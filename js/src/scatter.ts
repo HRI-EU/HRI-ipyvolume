@@ -222,21 +222,37 @@ class ScatterView extends widgets.WidgetView {
             this.material.uniforms[key].value = limits[key];
         }
     }
-    add_to_scene() {
 
+    add_to_scene() {
+        this.cast_shadow = this.model.get("cast_shadow");
+        this.receive_shadow = this.model.get("receive_shadow");
         //currently, no shadow support because of InstancedBufferGeometry
-        this.cast_shadow = true;//this.model.get("cast_shadow");
-        this.receive_shadow = true;//this.model.get("receive_shadow");
-        this.mesh.castShadow = true;
-        this.mesh.receiveShadow = true;
+        this.mesh.castShadow = this.model.get("use_instanced") == false ? this.cast_shadow : false;
+        this.mesh.receiveShadow = this.model.get("use_instanced") == false ? this.receive_shadow : false;
 
         this.renderer.scene_scatter.add(this.mesh);
         if (this.line_segments) {
             this.renderer.scene_scatter.add(this.line_segments);
-            this.line_segments.castShadow = true;
-            this.line_segments.receiveShadow = true;
+            this.line_segments.castShadow = this.model.get("use_instanced") == false ? this.cast_shadow : false;
+            this.line_segments.receiveShadow = this.model.get("use_instanced") == false ? this.receive_shadow : false;
         }
     }
+
+    update_shadow() {
+        this.cast_shadow = this.model.get("cast_shadow");
+        this.receive_shadow = this.model.get("receive_shadow");
+        //currently, no shadow support because of InstancedBufferGeometry
+        if(this.mesh){
+            this.mesh.castShadow = this.model.get("use_instanced") == false ? this.cast_shadow : false;
+            this.mesh.receiveShadow = this.model.get("use_instanced") == false ? this.receive_shadow : false;
+        }
+
+        if (this.line_segments) {
+            this.line_segments.castShadow = this.model.get("use_instanced") == false ? this.cast_shadow : false;
+            this.line_segments.receiveShadow = this.model.get("use_instanced") == false ? this.receive_shadow : false;
+        }
+    }
+
     remove_from_scene() {
         if (this.renderer.scene_scatter.children.indexOf(this.mesh) === -1) {
             console.warn("trying to removing scatter mesh from scene that does not include it");
@@ -250,10 +266,11 @@ class ScatterView extends widgets.WidgetView {
     }
     on_change() {
         if(this.model.get("pause_update")) {
-            console.log("pause_update (on_change)");
             return;
         }
-        console.log(this.model.changedAttributes());
+
+        //console.log(this.model.changedAttributes());
+
         var x = this.model.get("x");
         var y = this.model.get("y");
         var z = this.model.get("z");
@@ -302,12 +319,12 @@ class ScatterView extends widgets.WidgetView {
     }
     update_() {
         if(this.model.get("pause_update")) {
-            console.log("pause_update (update_)");
             return;
         }
         this.remove_from_scene();
         this.create_mesh();
         this.add_to_scene();
+        this._update_materials();
         this.renderer.update();
     }
     _get_value(value, index, default_value) {
@@ -417,6 +434,8 @@ class ScatterView extends widgets.WidgetView {
             
         });
 
+        this.update_shadow();
+
         const geo = this.model.get("geo");
         const sprite = geo.endsWith("2d");
         if (sprite) {
@@ -462,7 +481,6 @@ class ScatterView extends widgets.WidgetView {
 
     create_mesh() {
         if(this.model.get("pause_update")) {
-            console.log("pause_update (create_mesh)");
             return;
         }
         let geo = this.model.get("geo");
@@ -474,18 +492,18 @@ class ScatterView extends widgets.WidgetView {
 
         this.use_instanced = this.model.get("use_instanced");
         const instanced_geo = this.use_instanced ? new THREE.InstancedBufferGeometry() : new THREE.BufferGeometry();
-        console.log(typeof(this.model.get("x")));
-        console.log(typeof(this.model.get("y")));
-        console.log(typeof(this.model.get("z")));
+        // console.log(typeof(this.model.get("x")));
+        // console.log(typeof(this.model.get("y")));
+        // console.log(typeof(this.model.get("z")));
         if(!this.use_instanced) {
 
             this.scale_factor = this.model.get("scale_factor");
             this.vert_x = this.create_array(this.model.get("x"), this.vert_x);
             this.vert_y = this.create_array(this.model.get("y"), this.vert_y);
             this.vert_z = this.create_array(this.model.get("z"), this.vert_z);
-            console.log(this.vert_x)
-            console.log(this.vert_y)
-            console.log(this.vert_z)
+            // console.log(this.vert_x)
+            // console.log(this.vert_y)
+            // console.log(this.vert_z)
             var voxel_geometry = this.geos[geo].clone();
 
             var size_marker = this.model.get("size_marker");
@@ -731,8 +749,8 @@ class ScatterModel extends widgets.WidgetModel {
             emissive_intensity : 1,
             roughness : 0,
             metalness : 0,
-            cast_shadow : false,
-            receive_shadow : false,
+            cast_shadow : true,
+            receive_shadow : true,
             use_instanced : false,
             pause_update : false,
             scale_factor : 1,
