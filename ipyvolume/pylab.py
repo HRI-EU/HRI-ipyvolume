@@ -638,6 +638,23 @@ def plot_voxel(
     metalness=0,
     **kwargs
 ):
+    """Plot Voxel grid using non instanced geometry
+    :param d: {d} 3d voxel data where non-zero values mean a voxel placement. Non-zero values are used as marker sizes when size_marker is None
+    :param offset: {offset} 3d Space coordinate which represents the offset from origin of the entire voxel grid. Default [0,0,0]
+    :param size: {size} Size of the entire voxel grid. Default 1
+    :param scale_factor: Factor used to scale the distance between voxel centers. Default 1
+    :param size_marker: Voxel element size. Default 1
+    :param marker: {marker} 
+    :param center: {center} Place voxel coordinates around origin
+    :param color: {color} Color of the material, essentially a solid color unaffected by other lighting. Default is 'red'
+    :param opacity: (Physical Only) 0 - Mesh is fully transparent; 1 - Mesh is fully opaque
+    :param lighting_model: The lighting model used to calculate the final color of the mesh. Can be 'DEFAULT', 'PHYSICAL'. implicit 'DEFAULT'. Will be automatically updated to 'PHYSICAL' if a light is added to figure
+    :param emissive_intensity: (Physical Only) Factor multiplied with color. Takes values between 0 and 1. Default is 0.2
+    :param roughness: (Physical Only) How rough the material appears. 0.0 means a smooth mirror reflection, 1.0 means fully diffuse. Default is 1
+    :param metalness: (Physical Only) How much the material is like a metal. Non-metallic materials such as wood or stone use 0.0, metallic use 1.0, with nothing (usually) in between
+    :param kwargs:
+    :return: :any:`Voxel`
+    """
     coords = ipv.Voxel.d_to_xyz(d=d, center=center)
     x=coords[:,0] 
     y=coords[:,1]
@@ -692,16 +709,17 @@ def plot_pointcloud(
     metalness=0,
     **kwargs
 ):
-    """Plot many markers/symbols in 3d.
-       Due to certain shader limitations, should not use with Spot Lights and Point Lights.
-       Does not support shadow mapping.
+    """Plot many markers/symbols in 3d using non instanced geometry
     :param x: {x}
     :param y: {y}
     :param z: {z}
     :param color: {color} Color of the material, essentially a solid color unaffected by other lighting. Default is 'red'
     :param size: {size}
     :param size_selected: like size, but for selected glyphs
+    :param scale_factor: Factor used to scale the distance between voxel centers
+    :param size_marker: Voxel size
     :param color_selected:  like color, but for selected glyphs
+    :param voxel_data: {marker} Optional voxel data. Useful for per-voxel scaling. Should NOT set dirrectly, call plot_voxel instead. Default None
     :param marker: {marker}
     :param selection: numpy array of shape (N,) or (S, N) with indices of x,y,z arrays of the selected markers, which
                       can have a different size and color
