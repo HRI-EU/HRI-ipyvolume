@@ -632,6 +632,7 @@ def plot_voxel(
     center=True,
     color=default_color,
     opacity=1.0,
+    d_opacity=False,
     lighting_model='DEFAULT',
     emissive_intensity=emissive_intensity_default,
     roughness=0,
@@ -648,6 +649,7 @@ def plot_voxel(
     :param center: {center} Place voxel coordinates around origin
     :param color: {color} Color of the material, essentially a solid color unaffected by other lighting. Default is 'red'
     :param opacity: (Physical Only) 0 - Mesh is fully transparent; 1 - Mesh is fully opaque
+    :param d_opacity: Use opacity values from d)voxel data). Default False
     :param lighting_model: The lighting model used to calculate the final color of the mesh. Can be 'DEFAULT', 'PHYSICAL'. implicit 'DEFAULT'. Will be automatically updated to 'PHYSICAL' if a light is added to figure
     :param emissive_intensity: (Physical Only) Factor multiplied with color. Takes values between 0 and 1. Default is 0.2
     :param roughness: (Physical Only) How rough the material appears. 0.0 means a smooth mirror reflection, 1.0 means fully diffuse. Default is 1
@@ -679,6 +681,7 @@ def plot_voxel(
         voxel_data=d.ravel().tolist(),
         lighting_model=lighting_model,
         opacity=opacity,
+        d_opacity=d_opacity,
         emissive_intensity=emissive_intensity,
         roughness=roughness,
         metalness=metalness,
@@ -704,6 +707,7 @@ def plot_pointcloud(
     grow_limits=True,
     lighting_model='DEFAULT',
     opacity=1,
+    d_opacity=False,
     emissive_intensity=emissive_intensity_default,
     roughness=0,
     metalness=0,
@@ -750,6 +754,7 @@ def plot_pointcloud(
         use_instanced=False,
         lighting_model=lighting_model,
         opacity=opacity,
+        d_opacity=d_opacity,
         emissive_intensity=emissive_intensity,
         roughness=roughness,
         metalness=metalness,

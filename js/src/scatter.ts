@@ -49,6 +49,7 @@ class ScatterView extends widgets.WidgetView {
     pos_offset_x : any;
     pos_offset_y : any;
     pos_offset_z : any;
+    d_opacity : any;
 
     render() {
 
@@ -170,7 +171,7 @@ class ScatterView extends widgets.WidgetView {
 
         this.create_mesh();
         this.add_to_scene();
-        this.model.on("change:pause_update change:scale_factor change:pos_offset_x change:pos_offset_y change:pos_offset_z", this.on_change, this);
+        this.model.on("change:pause_update change:scale_factor change:pos_offset_x change:pos_offset_y change:pos_offset_z change:d_opacity", this.on_change, this);
         this.model.on("change:size change:size_selected change:size_marker change:color change:color_selected change:sequence_index change:x change:y change:z change:selected change:vx change:vy change:vz",
             this.on_change, this);
         this.model.on("change:geo change:connected", this.update_, this);
@@ -287,7 +288,7 @@ class ScatterView extends widgets.WidgetView {
         }
 
         for (const key of Object.keys(this.model.changedAttributes())) {
-            if(key=="pause_update" || key=="scale_factor" || key=="pos_offset_x" || key=="pos_offset_y" || key=="pos_offset_z" || key=="voxel_data") continue;
+            if(key=="pause_update" || key=="scale_factor" || key=="pos_offset_x" || key=="pos_offset_y" || key=="pos_offset_z" || key=="voxel_data" || key=="d_opacity") continue;
             this.previous_values[key] = this.model.previous(key);
             // attributes_changed keys will say what needs to be animated, it's values are the properties in
             // this.previous_values that need to be removed when the animation is done
@@ -376,12 +377,12 @@ class ScatterView extends widgets.WidgetView {
             this.line_material_rgb.linewidth = this.line_material.linewidth = this.model.get("line_material").obj.linewidth;
         }
 
-        this.material.defines = {USE_COLOR: true, DEFAULT_SHADING:true, PHYSICAL_SHADING:false};
-        this.material.extensions = {derivatives: true};
-        this.material_rgb.defines = {USE_RGB: true, USE_COLOR: true, DEFAULT_SHADING:true, PHYSICAL_SHADING:false};
+        this.material.defines = {USE_COLOR: true, DEFAULT_SHADING:true, PHYSICAL_SHADING:false, D_OPACITY:false};
+        this.material.extensions = {derivatives: true, D_OPACITY:false};
+        this.material_rgb.defines = {USE_RGB: true, USE_COLOR: true, DEFAULT_SHADING:true, PHYSICAL_SHADING:false, D_OPACITY:false};
         this.material_rgb.extensions = {derivatives: true};
-        this.line_material.defines = {AS_LINE: true, DEFAULT_SHADING:true, PHYSICAL_SHADING:false};
-        this.line_material_rgb.defines = {USE_RGB: true, AS_LINE: true, USE_COLOR: true, DEFAULT_SHADING:true, PHYSICAL_SHADING:false};
+        this.line_material.defines = {AS_LINE: true, DEFAULT_SHADING:true, PHYSICAL_SHADING:false, D_OPACITY:false};
+        this.line_material_rgb.defines = {USE_RGB: true, AS_LINE: true, USE_COLOR: true, DEFAULT_SHADING:true, PHYSICAL_SHADING:false, D_OPACITY:false};
         // locally and the visible with this object's visible trait
         this.material.visible = this.material.visible && this.model.get("visible");
         this.material_rgb.visible = this.material.visible && this.model.get("visible");
@@ -389,12 +390,13 @@ class ScatterView extends widgets.WidgetView {
         this.line_material_rgb.visible = this.line_material.visible && this.model.get("visible");
 
         this.lighting_model = this.model.get("lighting_model");
-
+        this.d_opacity = this.model.get("d_opacity");
         this.materials.forEach((material) => {
             material.vertexShader = require("raw-loader!../glsl/scatter-vertex.glsl");
             material.fragmentShader = require("raw-loader!../glsl/scatter-fragment.glsl");
             material.defines.DEFAULT_SHADING = false;
             material.defines.PHYSICAL_SHADING = false;
+            material.defines.D_OPACITY = this.d_opacity;
 
             if(this.lighting_model === this.LIGHTING_MODELS.DEFAULT) {
                 material.defines.DEFAULT_SHADING = true;
@@ -559,7 +561,11 @@ class ScatterView extends widgets.WidgetView {
                         colors[cIndex++] = currentColor.r;
                         colors[cIndex++] = currentColor.g;
                         colors[cIndex++] = currentColor.b;
-                        colors[cIndex++] = 1.0;
+                        var alpha=1.0;
+                        if(this.model.get("d_opacity") && data != null && data[0] != null && this.vert_x.length == data[0].length) {
+                            alpha=data[0][vert];
+                        }
+                        colors[cIndex++] = alpha;
                     }
                     for (var i=0; i<voxel_geometry.faces.length; i++) {
                         indices[fIndex++] = voxel_geometry.faces[i].a + faceOffset;
@@ -756,7 +762,8 @@ class ScatterModel extends widgets.WidgetModel {
             scale_factor : 1,
             pos_offset_x : 0,
             pos_offset_y : 0,
-            pos_offset_z : 0
+            pos_offset_z : 0,
+            d_opacity : false
         };
     }
 }

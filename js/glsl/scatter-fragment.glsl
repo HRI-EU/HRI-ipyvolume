@@ -94,6 +94,9 @@ void main(void)
 	#include <clipping_planes_fragment>
 
 	vec4 diffuseColor = vec4( 1.0, 1.0, 1.0, opacity );
+  #ifdef D_OPACITY
+    diffuseColor.a = vertex_color.a;
+  #endif
 	ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
 	vec3 totalEmissiveRadiance = emissive * emissiveIntensity;
 

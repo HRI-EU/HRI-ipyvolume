@@ -147,6 +147,7 @@ class Scatter(widgets.Widget):
     pos_offset_x = traitlets.CFloat(0).tag(sync=True)
     pos_offset_y = traitlets.CFloat(0).tag(sync=True)
     pos_offset_z = traitlets.CFloat(0).tag(sync=True)
+    d_opacity = traitlets.CBool(default_value=False).tag(sync=True)
 
     texture = traitlets.Union(
         [
