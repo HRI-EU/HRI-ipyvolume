@@ -1,6 +1,8 @@
+varying vec4 vertex_color;
+uniform float opacity;
 #ifdef DEFAULT_SHADING
   #include <fog_pars_fragment>
-  varying vec4 vertex_color;
+
   varying vec3 vertex_position;
   varying vec2 vertex_uv;
 
@@ -20,7 +22,7 @@
   uniform vec3 emissive;
   uniform float roughness;
   uniform float metalness;
-  uniform float opacity;
+
   uniform float emissiveIntensity;
 
   #ifndef STANDARD
@@ -63,6 +65,11 @@
 
 void main(void) 
 {
+vec4 diffuseColor = vec4( 1.0, 1.0, 1.0, opacity );
+#ifdef D_OPACITY
+  diffuseColor.a = vertex_color.a;
+#endif
+
 #ifdef DEFAULT_SHADING
   #ifdef USE_RGB
       gl_FragColor = vertex_color;
@@ -93,10 +100,6 @@ void main(void)
 #ifdef PHYSICAL_SHADING
 	#include <clipping_planes_fragment>
 
-	vec4 diffuseColor = vec4( 1.0, 1.0, 1.0, opacity );
-  #ifdef D_OPACITY
-    diffuseColor.a = vertex_color.a;
-  #endif
 	ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
 	vec3 totalEmissiveRadiance = emissive * emissiveIntensity;
 
@@ -123,6 +126,7 @@ void main(void)
 	#include <aomap_fragment>
 
 	vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular + totalEmissiveRadiance;
+
 	gl_FragColor = vec4( outgoingLight, diffuseColor.a );
 
 	#include <tonemapping_fragment>
@@ -132,4 +136,7 @@ void main(void)
 	#include <dithering_fragment>
 
 #endif
+
+gl_FragColor.a=diffuseColor.a;
+
 }

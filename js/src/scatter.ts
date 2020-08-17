@@ -561,8 +561,8 @@ class ScatterView extends widgets.WidgetView {
                         colors[cIndex++] = currentColor.r;
                         colors[cIndex++] = currentColor.g;
                         colors[cIndex++] = currentColor.b;
-                        var alpha=1.0;
-                        if(this.model.get("d_opacity") && data != null && data[0] != null && this.vert_x.length == data[0].length) {
+                        var alpha=this.model.get("opacity");;
+                        if(this.model.get("d_opacity")==true && data != null && data[0] != null && this.vert_x.length == data[0].length) {
                             alpha=data[0][vert];
                         }
                         colors[cIndex++] = alpha;
