@@ -2054,7 +2054,7 @@ def setup_material_widgets(mesh=None, tab=None, index=0):
     surf_color = ipywidgets.ColorPicker(description='Color:', value=str(mesh.color), continuous_update=True, style=style, layout=layout)
     mlm = 'PHYSICAL' if len(gcf().lights) > 0 and mesh.lighting_model=='DEFAULT' else mesh.lighting_model
     surf_lighting_model = ipywidgets.Dropdown(options=['DEFAULT','PHONG','PHYSICAL'],value=mlm, description='Lighting Model:',style=style, layout=layout)
-    surf_opacity = ipywidgets.FloatSlider(description='Opacity (Non-Default):',value=mesh.opacity, min=0.0, max=1.0, step=0.01, continuous_update=True, orientation='horizontal', readout=True, style=style, layout=layout)
+    surf_opacity = ipywidgets.FloatSlider(description='Opacity:',value=mesh.opacity, min=0.0, max=1.0, step=0.01, continuous_update=True, orientation='horizontal', readout=True, style=style, layout=layout)
     surf_emissive_intensity = ipywidgets.FloatSlider(description='Emissive Intensity (Non-Default):',value=mesh.emissive_intensity, min=0.0, max=1.0, step=0.01, continuous_update=True, orientation='horizontal', readout=True, style=style, layout=layout)
     surf_specular_color = ipywidgets.ColorPicker(description='Specular Color (Phong):',value=str(mesh.specular_color), continuous_update=True, style=style, layout=layout)
     surf_shininess = ipywidgets.FloatSlider(description='Shininess (Phong):',value=mesh.shininess, min=0.01, max=100.0, step=0.01, continuous_update=True, orientation='horizontal', readout=True, style=style, layout=layout)
@@ -2104,6 +2104,58 @@ def setup_material_widgets(mesh=None, tab=None, index=0):
     tab.children += (box,) 
     tab.set_title(index, "Mesh "+str(index))
 
+def setup_voxel_widgets(voxel=None, tab=None, index=0):
+    """Set up customization widgets for Mesh object materials inside an ipywidget.Tab
+        For more accessibility call show_lighting_widgets() instead
+    :param voxel: {Voxel} Voxel object 
+    :param tab: {ipywidgets.Tab} Parent ipywidget.Tab
+    :param index: Index of current ipywidget.Tab
+    """
+    if tab == None or voxel == None:
+        return None
+    style = {'description_width': '200px'}
+    layout = {'width': '450px'}
+    
+    surf_color = ipywidgets.ColorPicker(description='Color:', value=str(voxel.color), continuous_update=True, style=style, layout=layout)
+    mlm = 'PHYSICAL' if len(gcf().lights) > 0 and voxel.lighting_model=='DEFAULT' else voxel.lighting_model
+    surf_lighting_model = ipywidgets.Dropdown(options=['DEFAULT','PHYSICAL'],value=mlm, description='Lighting Model:',style=style, layout=layout)
+    surf_opacity = ipywidgets.FloatSlider(description='Opacity:',value=voxel.opacity, min=0.0, max=1.0, step=0.01, continuous_update=True, orientation='horizontal', readout=True, style=style, layout=layout)
+    surf_emissive_intensity = ipywidgets.FloatSlider(description='Emissive Intensity (Physical):',value=voxel.emissive_intensity, min=0.0, max=1.0, step=0.01, continuous_update=True, orientation='horizontal', readout=True, style=style, layout=layout)
+    surf_roughness = ipywidgets.FloatSlider(description='Roughness (Physical):',value=voxel.roughness, min=0.0, max=1.0, step=0.01, continuous_update=True, orientation='horizontal',readout=True, style=style, layout=layout)
+    surf_metalness = ipywidgets.FloatSlider(description='Metalness (Physical):',value=voxel.metalness, min=0.0, max=1.0, step=0.01, continuous_update=True, orientation='horizontal', readout=True, style=style, layout=layout)
+    surf_cast_shadow = ipywidgets.widgets.Checkbox(value=voxel.cast_shadow, description='Cast Shadow (Physical)', style=style, layout=layout)
+    surf_receive_shadow = ipywidgets.widgets.Checkbox(value=voxel.cast_shadow, description='Receive Shadow (Physical)', style=style, layout=layout)
+
+    def set_params(color, 
+                   lighting_model, 
+                   opacity, 
+                   emissive_intensity,
+                   roughness,
+                   metalness,
+                   cast_shadow, 
+                   receive_shadow):
+        voxel.color = color
+        voxel.lighting_model = lighting_model
+        voxel.opacity = opacity
+        voxel.emissive_intensity = emissive_intensity
+        voxel.roughness = roughness
+        voxel.metalness = metalness
+        voxel.cast_shadow = cast_shadow
+        voxel.receive_shadow = receive_shadow
+    
+    interactables = ipywidgets.interactive(set_params, 
+                     color=surf_color,
+                     lighting_model=surf_lighting_model, 
+                     opacity=surf_opacity,
+                     emissive_intensity = surf_emissive_intensity,
+                     roughness = surf_roughness,
+                     metalness = surf_metalness,
+                     cast_shadow = surf_cast_shadow,
+                     receive_shadow = surf_receive_shadow)
+    
+    box = ipywidgets.VBox(children = interactables.children)
+    tab.children += (box,) 
+    tab.set_title(index, "Voxel "+str(index))
 
 
 def setup_light_widgets(light=None, tab=None, index=0):
@@ -2286,6 +2338,10 @@ def show_lighting_widgets():
     for m in fig.meshes:
         setup_material_widgets(mesh=m, tab=tab, index=index)
         index+=1
+    for v in fig.scatters:
+        if type(v) is ipv.Voxel:
+            setup_voxel_widgets(voxel=v, tab=tab, index=index)
+            index+=1
     display(tab)
 
 

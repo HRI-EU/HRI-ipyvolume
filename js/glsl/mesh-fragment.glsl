@@ -1,10 +1,9 @@
+uniform float opacity;
 #ifdef LAMBERT_SHADING
     #define LAMBERT
     uniform vec3 diffuse;
     uniform vec3 emissive;
     uniform float emissiveIntensity;
-    uniform float opacity;
-
     varying vec3 vLightFront;
 
     #ifdef DOUBLE_SIDED
@@ -39,9 +38,7 @@
     uniform vec3 diffuse;
     uniform vec3 emissive;
     uniform vec3 specular;
-
     uniform float shininess;
-    uniform float opacity;
     uniform float emissiveIntensity;
 
     #include <common>
@@ -75,7 +72,7 @@
     uniform vec3 emissive;
     uniform float roughness;
     uniform float metalness;
-    uniform float opacity;
+
     uniform float emissiveIntensity;
 
     #ifndef STANDARD
@@ -274,4 +271,6 @@ void main(void)
 	#include <premultiplied_alpha_fragment>
 	#include <dithering_fragment>
 #endif //PHYSICAL_SHADING
+
+gl_FragColor.a=opacity;
 }
