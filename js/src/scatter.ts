@@ -227,11 +227,13 @@ class ScatterView extends widgets.WidgetView {
     add_to_scene() {
         this.cast_shadow = this.model.get("cast_shadow");
         this.receive_shadow = this.model.get("receive_shadow");
-        //currently, no shadow support because of InstancedBufferGeometry
-        this.mesh.castShadow = this.model.get("use_instanced") == false ? this.cast_shadow : false;
-        this.mesh.receiveShadow = this.model.get("use_instanced") == false ? this.receive_shadow : false;
+        if(this.mesh) {
+            //currently, no shadow support because of InstancedBufferGeometry
+            this.mesh.castShadow = this.model.get("use_instanced") == false ? this.cast_shadow : false;
+            this.mesh.receiveShadow = this.model.get("use_instanced") == false ? this.receive_shadow : false;
+            this.renderer.scene_scatter.add(this.mesh);
+        }
 
-        this.renderer.scene_scatter.add(this.mesh);
         if (this.line_segments) {
             this.renderer.scene_scatter.add(this.line_segments);
             this.line_segments.castShadow = this.model.get("use_instanced") == false ? this.cast_shadow : false;
