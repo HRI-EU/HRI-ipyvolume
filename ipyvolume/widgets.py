@@ -239,8 +239,8 @@ class Voxel(Scatter):
         # set model into origin
         if center and boxes.size > 0:
             for i in range(3): 
+                boxes[:,i] = boxes[:,i] - boxes[:,i].max()
                 boxes[:,i] = boxes[:,i] - boxes[:,i].min()
-                boxes[:,i] = boxes[:,i] - boxes[:,i].max()/2
 
         return boxes
 

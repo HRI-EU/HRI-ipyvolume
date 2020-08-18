@@ -678,7 +678,7 @@ def plot_voxel(
         pos_offset_x=offset[0],
         pos_offset_y=offset[1],
         pos_offset_z=offset[2],
-        voxel_data=d.ravel().tolist(),
+        voxel_data=list(filter(lambda a: a !=0, d.ravel().tolist())),#remove all zeros
         lighting_model=lighting_model,
         opacity=opacity,
         d_opacity=d_opacity,
