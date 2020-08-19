@@ -523,7 +523,7 @@ class ScatterView extends widgets.WidgetView {
                 if(size_marker.length > 1) { sy = size_marker[1];}
                 if(size_marker.length > 2) { sz = size_marker[2];}    
             }
-            voxel_geometry.scale(sx, sy, sz);
+            voxel_geometry.scale(sx*this.scale_factor, sy*this.scale_factor, sz*this.scale_factor);
 
             if(this.vert_x.length != this.vert_y.length && this.vert_x.length != this.vert_z.length) {
                 console.error("Mismatched lengths for model get x, y, z");
@@ -550,7 +550,7 @@ class ScatterView extends widgets.WidgetView {
                 for(var vert=0; vert<this.vert_x.length; vert++) {
                     
                     if(size_marker == null && data != null && data[0] != null && this.vert_x.length == data[0].length) {
-                        var currentScale = data[0][vert];
+                        var currentScale = data[0][vert] * this.scale_factor;
                         voxel_geometry = this.geos[geo].clone();
                         voxel_geometry.scale(currentScale,currentScale,currentScale);
                     }
