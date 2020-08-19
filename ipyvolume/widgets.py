@@ -196,7 +196,7 @@ class observed_array(np.ndarray):
 class Voxel(Scatter):
     def vox_cb(self, obj, *args, **kwargs):
         #print("Voxel Callback Compute x,y,z")
-        coords = Voxel.d_to_xyz(obj.d, center=True)
+        coords = Voxel.d_to_xyz(obj.d) 
         # print(coords[:,0])
         # print(coords[:,1])
         # print(coords[:,2])
@@ -229,16 +229,11 @@ class Voxel(Scatter):
         self.d_param.set_callback(self, self.vox_cb)
 
     @staticmethod
-    def d_to_xyz(d, center=True):
+    def d_to_xyz(d):
+        
         boxes = None
         boxes = np.array(np.nonzero(d)).transpose()
         boxes = boxes.astype(np.float)
-
-        # set model into origin
-        if center and boxes.size > 0:
-            for i in range(3): 
-                boxes[:,i] = boxes[:,i] - boxes[:,i].max()
-                boxes[:,i] = boxes[:,i] - boxes[:,i].min()
 
         return boxes
 

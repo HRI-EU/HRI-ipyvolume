@@ -629,7 +629,6 @@ def plot_voxel(
     size_marker=1,
     marker="box",
     grow_limits=True,
-    center=True,
     color=default_color,
     opacity=1.0,
     d_opacity=False,
@@ -646,7 +645,6 @@ def plot_voxel(
     :param scale_factor: Factor used to scale the distance between voxel centers. Default 1
     :param size_marker: Voxel element size. Default 1
     :param marker: {marker} 
-    :param center: {center} Place voxel coordinates around origin
     :param color: {color} Color of the material, essentially a solid color unaffected by other lighting. Default is 'red'
     :param opacity: (Physical Only) 0 - Mesh is fully transparent; 1 - Mesh is fully opaque
     :param d_opacity: Use opacity values from d)voxel data). Default False
@@ -654,10 +652,11 @@ def plot_voxel(
     :param emissive_intensity: (Physical Only) Factor multiplied with color. Takes values between 0 and 1. Default is 0.2
     :param roughness: (Physical Only) How rough the material appears. 0.0 means a smooth mirror reflection, 1.0 means fully diffuse. Default is 1
     :param metalness: (Physical Only) How much the material is like a metal. Non-metallic materials such as wood or stone use 0.0, metallic use 1.0, with nothing (usually) in between
+    :param grow_limits TODO
     :param kwargs:
     :return: :any:`Voxel`
     """
-    coords = ipv.Voxel.d_to_xyz(d=d, center=center)
+    coords = ipv.Voxel.d_to_xyz(d=d)
     x=coords[:,0] 
     y=coords[:,1]
     z=coords[:,2] 
@@ -674,7 +673,7 @@ def plot_voxel(
         scale_factor=scale_factor,
         marker=marker,
         selection=None,
-        grow_limits=grow_limits,
+        grow_limits=False,
         offset=offset,
         voxel_data=list(filter(lambda a: a !=0, d.ravel().tolist())),#remove all zeros
         lighting_model=lighting_model,
@@ -686,6 +685,9 @@ def plot_voxel(
     )
     p.d = d
 
+    shape = np.shape(d)
+    _grow_limits([0, np.max(shape)],[0, np.max(shape)],[0, np.max(shape)])
+    
     return p
 
 #@_docsubst
