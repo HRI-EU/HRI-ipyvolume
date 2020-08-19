@@ -144,9 +144,7 @@ class Scatter(widgets.Widget):
     receive_shadow = traitlets.CBool(default_value=True).tag(sync=True)
     pause_update = traitlets.CBool(default_value=False).tag(sync=True)
     scale_factor = traitlets.CFloat(1).tag(sync=True)
-    pos_offset_x = traitlets.CFloat(0).tag(sync=True)
-    pos_offset_y = traitlets.CFloat(0).tag(sync=True)
-    pos_offset_z = traitlets.CFloat(0).tag(sync=True)
+    offset = Array(default_value=None, allow_none=True).tag(sync=True, **array_sequence_serialization)
     d_opacity = traitlets.CBool(default_value=False).tag(sync=True)
 
     texture = traitlets.Union(

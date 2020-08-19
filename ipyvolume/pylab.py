@@ -675,9 +675,7 @@ def plot_voxel(
         marker=marker,
         selection=None,
         grow_limits=grow_limits,
-        pos_offset_x=offset[0],
-        pos_offset_y=offset[1],
-        pos_offset_z=offset[2],
+        offset=offset,
         voxel_data=list(filter(lambda a: a !=0, d.ravel().tolist())),#remove all zeros
         lighting_model=lighting_model,
         opacity=opacity,
@@ -702,6 +700,7 @@ def plot_pointcloud(
     size_marker=1,
     color_selected=default_color_selected,
     voxel_data=None,
+    offset=None,
     marker="box",
     selection=None,
     grow_limits=True,
@@ -749,6 +748,7 @@ def plot_pointcloud(
         scale_factor=scale_factor,
         size_marker=size_marker,
         voxel_data=voxel_data,
+        offset=offset,
         geo=marker,
         selection=selection,
         use_instanced=False,
@@ -2105,7 +2105,7 @@ def setup_material_widgets(mesh=None, tab=None, index=0):
     tab.set_title(index, "Mesh "+str(index))
 
 def setup_voxel_widgets(voxel=None, tab=None, index=0):
-    """Set up customization widgets for Mesh object materials inside an ipywidget.Tab
+    """Set up customization widgets for Voxel object materials inside an ipywidget.Tab
         For more accessibility call show_lighting_widgets() instead
     :param voxel: {Voxel} Voxel object 
     :param tab: {ipywidgets.Tab} Parent ipywidget.Tab
