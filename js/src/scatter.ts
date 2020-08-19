@@ -555,15 +555,15 @@ class ScatterView extends widgets.WidgetView {
                         voxel_geometry.scale(currentScale,currentScale,currentScale);
                     }
                     for (var v=0; v<voxel_geometry.vertices.length; v++) {
-                        vertices[vIndex++] = (this.pos_offset_x + voxel_geometry.vertices[v].x + this.scale_factor * this.vert_x[vert]).toFixed(3);
-                        vertices[vIndex++] = (this.pos_offset_y + voxel_geometry.vertices[v].y + this.scale_factor * this.vert_y[vert]).toFixed(3);
-                        vertices[vIndex++] = (this.pos_offset_z + voxel_geometry.vertices[v].z + this.scale_factor * this.vert_z[vert]).toFixed(3);
+                        vertices[vIndex++] = (this.scale_factor/2 + this.pos_offset_x + voxel_geometry.vertices[v].x + this.scale_factor * this.vert_x[vert]).toFixed(3);
+                        vertices[vIndex++] = (this.scale_factor/2 + this.pos_offset_y + voxel_geometry.vertices[v].y + this.scale_factor * this.vert_y[vert]).toFixed(3);
+                        vertices[vIndex++] = (this.scale_factor/2 + this.pos_offset_z + voxel_geometry.vertices[v].z + this.scale_factor * this.vert_z[vert]).toFixed(3);
                     }
                     for (var col=0; col<voxel_geometry.vertices.length; col++) {
                         colors[cIndex++] = currentColor.r;
                         colors[cIndex++] = currentColor.g;
                         colors[cIndex++] = currentColor.b;
-                        var alpha=this.model.get("opacity");;
+                        var alpha=this.model.get("opacity");
                         if(this.model.get("d_opacity")==true && data != null && data[0] != null && this.vert_x.length == data[0].length) {
                             alpha=data[0][vert];
                         }
@@ -659,6 +659,7 @@ class ScatterView extends widgets.WidgetView {
         this.mesh = new THREE.Mesh(instanced_geo, this.material);
         this.mesh.material_rgb = this.material_rgb;
         this.mesh.material_normal = this.material;
+        this.mesh.frustumCulled = false;
 
         if (this.model.get("connected")) {
             const geometry = new THREE.BufferGeometry();
