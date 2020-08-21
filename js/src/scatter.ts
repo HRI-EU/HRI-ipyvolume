@@ -391,9 +391,18 @@ class ScatterView extends widgets.WidgetView {
 
         this.lighting_model = this.model.get("lighting_model");
         this.d_opacity = this.model.get("d_opacity");
+        this.use_instanced = this.model.get("use_instanced");
+
         this.materials.forEach((material) => {
-            material.vertexShader = require("raw-loader!../glsl/scatter-vertex.glsl");
-            material.fragmentShader = require("raw-loader!../glsl/scatter-fragment.glsl");
+            if(this.use_instanced) {
+                material.vertexShader = require("raw-loader!../glsl/scatter-vertex.glsl");
+                material.fragmentShader = require("raw-loader!../glsl/scatter-fragment.glsl");
+            }
+            else {
+                material.vertexShader = require("raw-loader!../glsl/mesh-vertex.glsl");
+                material.fragmentShader = require("raw-loader!../glsl/mesh-fragment.glsl");
+            }
+
             material.defines.DEFAULT_SHADING = false;
             material.defines.PHYSICAL_SHADING = false;
             material.defines.D_OPACITY = this.d_opacity;

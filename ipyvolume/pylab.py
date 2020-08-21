@@ -2079,6 +2079,7 @@ def setup_material_widgets(mesh=None, tab=None, index=0):
                    flat_shading):
         mesh.color = color
         mesh.lighting_model = lighting_model
+        mesh.send_state('lighting_model')
         mesh.opacity = opacity
         mesh.emissive_intensity = emissive_intensity
         mesh.specular_color = specular_color
@@ -2138,6 +2139,7 @@ def setup_voxel_widgets(voxel=None, tab=None, index=0):
                    receive_shadow):
         voxel.color = color
         voxel.lighting_model = lighting_model
+        voxel.send_state('lighting_model')
         voxel.opacity = opacity
         voxel.emissive_intensity = emissive_intensity
         voxel.roughness = roughness

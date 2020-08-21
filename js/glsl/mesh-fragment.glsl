@@ -126,6 +126,11 @@ varying vec2 vertex_uv;
 
 void main(void) 
 {
+vec4 diffuseColor = vec4( 1.0, 1.0, 1.0, opacity );
+#ifdef D_OPACITY
+  diffuseColor.a = vertex_color.a;
+#endif
+
 #ifdef DEFAULT_SHADING
     #ifdef USE_RGB
         gl_FragColor = vec4(vertex_color.rgb, 1.0);
@@ -151,7 +156,7 @@ void main(void)
 #ifdef LAMBERT_SHADING
     #include <clipping_planes_fragment>
 
-	vec4 diffuseColor = vec4( vec3(1,1,1), opacity );
+	//vec4 diffuseColor = vec4( vec3(1,1,1), opacity );
 	ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
 	vec3 totalEmissiveRadiance = emissive * emissiveIntensity;
 
@@ -198,7 +203,7 @@ void main(void)
 #ifdef PHONG_SHADING
     #include <clipping_planes_fragment>
 
-	vec4 diffuseColor = vec4( vec3(1,1,1), opacity );
+	//vec4 diffuseColor = vec4( vec3(1,1,1), opacity );
 	ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
 	vec3 totalEmissiveRadiance = emissive * emissiveIntensity;
 
@@ -238,7 +243,7 @@ void main(void)
 #ifdef PHYSICAL_SHADING
 	#include <clipping_planes_fragment>
 	
-	vec4 diffuseColor = vec4( vec3(1,1,1), opacity );
+	//vec4 diffuseColor = vec4( vec3(1,1,1), opacity );
 	ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
 	vec3 totalEmissiveRadiance = emissive * emissiveIntensity;
 
@@ -272,5 +277,6 @@ void main(void)
 	#include <dithering_fragment>
 #endif //PHYSICAL_SHADING
 
-gl_FragColor.a=opacity;
+//gl_FragColor.a=opacity;
+gl_FragColor.a=diffuseColor.a;
 }
