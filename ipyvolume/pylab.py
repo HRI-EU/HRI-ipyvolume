@@ -624,7 +624,7 @@ def plot_mesh(
 def plot_voxel(
     d,
     offset=[0,0,0],
-    size=1,
+    size=None,
     scale_factor=1,
     size_marker=1,
     marker="box",
@@ -656,6 +656,9 @@ def plot_voxel(
     :param kwargs:
     :return: :any:`Voxel`
     """
+    if size==None:
+        size=100/np.max(np.shape(d))
+
     coords = ipv.Voxel.d_to_xyz(d=d)
     x=coords[:,0] 
     y=coords[:,1]
